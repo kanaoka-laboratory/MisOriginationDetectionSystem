@@ -1,2 +1,4 @@
 MisOriginationDetectionSystem.sublime-project
 MisOriginationDetectionSystem.sublime-workspace
+data/RIPE_DL/*
+data/RIPE_BGPDUMP/*
