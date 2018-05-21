@@ -1,5 +1,7 @@
 <?php
 //==================== URLからファイルをダウンロードする ====================//
+// url: ダウンロードするファイルのURL
+// filename: 保存先ファイル名
 function downloadFile($url, $filename){
 	// ファイルポインタの取得
 	if(($fp_read = fopen($url, 'r')) === false) return false;
@@ -18,7 +20,8 @@ function downloadFile($url, $filename){
 			break;
 		}
 	}
-
+	fclose($fp_read);
+	fclose($fp_write);
 	// 成功ならtrue，失敗ならfalseを返す
 	return empty($error);
 }
