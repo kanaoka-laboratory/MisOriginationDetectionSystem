@@ -12,21 +12,31 @@ function getFullRouteFromBgpdump($filename, &$network_list){
 	
 	// 1行ずつ読み込み
 	while(($row = fgets($fp)) !== false){
+		//------------ 行の読み込み ------------//
 		// 1行にまとまったデータを分割
-		list($protocol, $datetime, $type, $ip, $origin_as, $ip_prefix, $as_path, $origin_attr) = explode('|', rtrim($row));
+		list($protocol, $datetime, $type, $null1, $null2, $ip_prefix, $as_path, $origin_attr) = explode('|', rtrim($row));
 		// 日付を再フォーマット		
 		$datetime = date('Y-m-d H:i:s', strtotime($datetime));
+		// origin ASを取得
+		$as_path_list = array_reverse(explode(' ', $as_path));
+		$origin_as = $as_path_list[0];
 
-		
-		// IPv4とIPv6を区別して配列に代入
-		$ip_proto = strpos($ip, ':')===false? 'v4': 'v6';
-		$network_list[$ip_proto][$origin_as] = array(
+		//------------ IPv4とIPv6を区別して$network_listに経路情報を追加 ------------//
+		// IPv4とIPv6を区別
+		$ip_proto = strpos($ip_prefix, ':')===false? 'v4': 'v6';
+		// 初めてのOrigin-ASの場合は経路配列を初期化
+		if(!isset($network_list[$ip_proto][$origin_as]))
+			$network_list[$ip_proto][$origin_as] = array();
+		// 重複する経路は追加しない（次の行にcontinue）
+		foreach($network_list[$ip_proto][$origin_as] as $route){
+			if($ip_prefix===$route[NETWORK_LIST_IP_PREFIX]) continue 2;
+		}
+		// 経路を追加する
+		$network_list[$ip_proto][$origin_as][] = array(
 			$ip_prefix,		// IPプレフィックス
-			// $datetime,		// 日付
-			// $as_path,		// AS Path
-			// $ip,			// IPアドレス
-			// $origin_attr,	// Origin属性
-			// $type,			// アップデートの種類
+			$as_path_list,	// AS Path
+			// $datetime,	// 日付
+			// $origin_attr,// Origin属性
 			// $protocol,	// プロトコル（不要？）
 		);
 
