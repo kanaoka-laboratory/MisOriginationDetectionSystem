@@ -62,6 +62,9 @@ showLog('変更後データの読み込み完了');
 
 
 // IPの重複確認を総当たりで行う
+detectConflict($next_network_list);
+// ログ出力
+showLog('衝突検知完了');
 
 // Mis-Originationの可能性がある経路をフィルタ
 
