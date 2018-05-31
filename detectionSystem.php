@@ -9,9 +9,7 @@ foreach(glob('import/*.php') as $filename) require_once($filename);
 // TimezoneをUTCに設定
 date_default_timezone_set('UTC');
 // 実行時間測定用プログラムタイマーのリセット
-resetProgramTimer();
-// ログ出力
-showLog('実行開始');
+resetProgramTimer('実行開始');
 
 //==================== RIPEから変更前（＝前日）と変更後（＝今日）の経路情報を取得してbgpdump形式に変換 ====================//
 // このプログラムはcronによってUTC 1:00（JCT 10:00）に起動する

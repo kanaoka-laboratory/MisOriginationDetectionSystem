@@ -6,6 +6,10 @@ chdir(dirname(__FILE__));
 require_once('config.php');
 // 関数などの読み込み
 foreach(glob('import/*.php') as $filename) require_once($filename);
+// TimezoneをUTCに設定
+date_default_timezone_set('UTC');
+// 実行時間測定用プログラムタイマーのリセット
+resetProgramTimer('実行開始');
 
 // var_dump(detectIpPrefixOverlap("172.18.32.0/20", "172.18.11.0/24"));
 
@@ -28,9 +32,19 @@ foreach(glob('import/*.php') as $filename) require_once($filename);
 // for($i=0;$i<100000;$i++) $arr[$i] = "HelloWorld";
 // dumpMemory();
 // $arr = array();
-// dumpMemory();
+// 'VdumpMemory();
 
-getFullRouteFromBgpdump('test/bgpdumpsample.txt', $network_list);
-var_dump($network_list);
+
+
+// 経路情報の取得
+getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.'20180525_0000.bgpdump.txt', $network_list);
+// ログ出力
+showLog('bgpdumpの読み込み完了');
+
+// 衝突検知
+detectConflict($network_list);
+// ログ出力
+showLog('衝突検知完了');
+
 
 ?>

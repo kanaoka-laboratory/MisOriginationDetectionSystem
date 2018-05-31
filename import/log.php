@@ -1,9 +1,10 @@
 <?php
 //==================== 時間測定用 ====================//
 $debug_program_start_time = 0;
-function resetProgramTimer(){
+function resetProgramTimer($message = null){
 	global $debug_program_start_time;
 	$debug_program_start_time = time();
+	if($message !== null) showLog($message);
 }
 function showLog($message){
 	global $debug_program_start_time;
