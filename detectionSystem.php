@@ -21,8 +21,7 @@ $next_network_list = array();
 //==================== MySQLから変更前データを取得 ====================//
 // 更新前データはMySQLから読み込む
 getPrevFullRouteFromDB($prev_network_list);
-// ログ出力
-showLog('変更後データの読み込み完了');
+showLog('変更前データの読み込み完了');
 
 //==================== RIPEから変更後の経路情報を取得してbgpdump形式に変換 ====================//
 // このプログラムはcronによってUTC 1:00（JCT 10:00）に起動する
@@ -34,36 +33,40 @@ $prev_dl_filename = 'bview.'.date('Ymd', $prev_ts).'.0000.gz';
 $next_dl_filename = 'bview.'.date('Ymd', $next_ts).'.0000.gz';
 $prev_bgpdump_filename = date('Ymd', $prev_ts).'_0000.bgpdump.txt';
 $next_bgpdump_filename = date('Ymd', $next_ts).'_0000.bgpdump.txt';
+$mysql_datetime = date('Y-m-d', $next_ts).' 00:00:00';
 
 // DLして変換
 if(downloadFile('http://data.ris.ripe.net/rrc00/'.date('Y.m', $next_ts).'/'.$next_dl_filename, DIR_RIPE_DL.$next_dl_filename)){
-	// ログ出力
 	showLog('変更後データのダウンロード完了');
 	// 変換処理
 	shell_exec('/usr/bin/python mrt2bgpdump.py '.DIR_RIPE_DL.$next_dl_filename.' > '.DIR_RIPE_BGPDUMP.$next_bgpdump_filename);
-	// ログ出力
 	showLog('変更後データのbgpdumpへの変換完了');
 }else{
-	exit('後日データのダウンロードに失敗しました');
+	showLog('後日データのダウンロードに失敗しました');
+	exit;
 }
 //==================== 変更後のデータをそれぞれ読み込んで配列に格納 ====================//
 getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.$next_bgpdump_filename, $next_network_list);
-// ログ出力
 showLog('変更後データの読み込み完了');
 
+//==================== 変更検出 ====================//
 // 個人メモ：変更後情報を読み込んだあとは，衝突検知の処理と，変更前経路取得・変更検知の処理は並列で動かせるはず
 // 変更情報を抽出
 $update_route = detectUpdate($prev_network_list, $next_network_list);
+showLog('変更情報抽出完了');
+// 変更情報をMySQLに保存
+insertFullRouteUpdateToDB($update_route, $next_network_list);
+showLog('変更情報保存完了');
 
+//==================== 衝突検出 ====================//
 // IPの重複確認を総当たりで行う
 $conflict_route = detectConflict($next_network_list);
-// ログ出力
 showLog('衝突検知完了');
+// 衝突情報をMySQLに保存
+insertConflictToDB($conflict_route);
+showLog('衝突情報抽出完了');
 
 // Mis-Originationの可能性がある経路をフィルタ
-
-// 出力（MySQL）
-
 
 // 出力（Slack，owncloudなど）
 

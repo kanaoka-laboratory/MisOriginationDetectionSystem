@@ -2,8 +2,8 @@
 //==================== 変更前と変更後の経路情報を比較して変更があった経路の情報を返す ====================//
 function detectUpdate($prev_network_list, $next_network_list){
 	// 変更を保存する配列
-	$update_route = array('add'=>array(), 'delte'=>array(), 'update'=>array());
-
+	$update_route = array(	'v4'=>array('add'=>array(),'delete'=>array(),'update'=>array()),
+							'v6'=>array('add'=>array(),'delete'=>array(),'update'=>array())	);
 	
 	// 重複する経路を$prev_network_listからunset
 	foreach(array('v4','v6') as $ip_proto){
@@ -15,18 +15,18 @@ function detectUpdate($prev_network_list, $next_network_list){
 					continue;
 				}
 				// 変更（追加された経路）を$update_route['add']に追加
-				$update_route['add'][] = array($as, $prefix, $prefix_info[NETWORK_LIST_IP_MIN], $prefix_info[NETWORK_LIST_IP_MAX]);
+				$update_route[$ip_proto]['add'][] = array($as, $prefix, $prefix_info[NETWORK_LIST_IP_MIN], $prefix_info[NETWORK_LIST_IP_MAX]);
 				// 変更のあったASをキーとして$update_route['update']に追加
-				$update_route['update'][$as] = true;
+				$update_route[$ip_proto]['update'][$as] = true;
 			}
 		}
 		// $prev_network_listに残った経路を検出
 		foreach($prev_network_list[$ip_proto] as $as => $as_info){
 			foreach($as_info as $prefix => $prefix_info){
 				// 残っている要素（経路）$update_route['delete']に追加
-				$update_route['delete'][] = array($as, $prefix);
+				$update_route[$ip_proto]['delete'][] = array($as, $prefix);
 				// 変更のあったASをキーとして$update_route['update']に追加
-				$update_route['update'][$as] = true;
+				$update_route[$ip_proto]['update'][$as] = true;
 			}
 		}
 	}
