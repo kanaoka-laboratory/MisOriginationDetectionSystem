@@ -37,14 +37,16 @@ resetProgramTimer('実行開始');
 
 
 // 経路情報の取得
-getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.'20180525_0000.bgpdump.txt', $network_list);
+// getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.'20180525_0000.bgpdump.txt', $network_list);
+getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.'update.txt', $network_list);
 // ログ出力
 showLog('bgpdumpの読み込み完了');
+var_dump($network_list);
 
-// 衝突検知
-detectConflict($network_list);
-// ログ出力
-showLog('衝突検知完了');
+// // 衝突検知
+// detectConflict($network_list);
+// // ログ出力
+// showLog('衝突検知完了');
 
 
 ?>
