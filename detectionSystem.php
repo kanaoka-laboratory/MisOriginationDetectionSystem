@@ -20,6 +20,7 @@ $next_network_list = array();
 
 //==================== MySQLから変更前データを取得 ====================//
 // 更新前データはMySQLから読み込む
+showLog('変更前データの読み込み開始');
 getPrevFullRouteFromDB($prev_network_list);
 showLog('変更前データの読み込み完了');
 
@@ -36,7 +37,8 @@ $next_bgpdump_filename = date('Ymd', $next_ts).'_0000.bgpdump.txt';
 $mysql_datetime = date('Y-m-d', $next_ts).' 00:00:00';
 
 // DLして変換
-if(downloadFile('http://data.ris.ripe.net/rrc00/'.date('Y.m', $next_ts).'/'.$next_dl_filename, DIR_RIPE_DL.$next_dl_filename)){
+showLog('変更後データのダウンロード開始');
+	if(downloadFile('http://data.ris.ripe.net/rrc00/'.date('Y.m', $next_ts).'/'.$next_dl_filename, DIR_RIPE_DL.$next_dl_filename)){
 	showLog('変更後データのダウンロード完了');
 	// 変換処理
 	shell_exec('/usr/bin/python mrt2bgpdump.py '.DIR_RIPE_DL.$next_dl_filename.' > '.DIR_RIPE_BGPDUMP.$next_bgpdump_filename);
@@ -45,25 +47,36 @@ if(downloadFile('http://data.ris.ripe.net/rrc00/'.date('Y.m', $next_ts).'/'.$nex
 	showLog('後日データのダウンロードに失敗しました');
 	exit;
 }
-//==================== 変更後のデータをそれぞれ読み込んで配列に格納 ====================//
+//==================== 変更後のデータを取得 ====================//
+showLog('変更後データの読み込み開始');
 getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.$next_bgpdump_filename, $next_network_list);
 showLog('変更後データの読み込み完了');
+
+//==================== network_listのソート ====================//
+ksort($prev_network_list['v4']);
+ksort($prev_network_list['v6']);
+ksort($next_network_list['v4']);
+ksort($next_network_list['v6']);
 
 //==================== 変更検出 ====================//
 // 個人メモ：変更後情報を読み込んだあとは，衝突検知の処理と，変更前経路取得・変更検知の処理は並列で動かせるはず
 // 変更情報を抽出
-$update_route = detectUpdate($prev_network_list, $next_network_list);
+showLog('変更情報抽出開始');
+$update_list = detectUpdate($prev_network_list, $next_network_list);
 showLog('変更情報抽出完了');
 // 変更情報をMySQLに保存
-insertFullRouteUpdateToDB($update_route, $next_network_list);
+showLog('変更情報保存開始');
+insertFullRouteUpdateToDB($update_list, $next_network_list);
 showLog('変更情報保存完了');
 
 //==================== 衝突検出 ====================//
 // IPの重複確認を総当たりで行う
-$conflict_route = detectConflict($next_network_list);
+showLog('衝突検知開始');
+$conflict_list = detectConflict($next_network_list);
 showLog('衝突検知完了');
 // 衝突情報をMySQLに保存
-insertConflictToDB($conflict_route);
+showLog('衝突情報抽出開始');
+insertConflictToDB($conflict_list);
 showLog('衝突情報抽出完了');
 
 // Mis-Originationの可能性がある経路をフィルタ

@@ -5,20 +5,26 @@ class mymysqli extends mysqli{
 		// MySQLの資格情報を取得
 		$filename='mysql_credential.ini';
 		if(!is_readable($filename)){
-			showLog('MySQLの資格情報を読み込めません');
-			exit;
+			exit('MySQLの資格情報を読み込めません'.PHP_EOL);
 		}
 		list($user, $pass) = explode("\n", file_get_contents($filename));
 		
 		//MySQLへ接続
 		parent::__construct('localhost', $user, $pass, 'MisOriginationDetectionSystem');
 		if($this->connect_error){
-			showLog('MySQLの接続に失敗しました：'.$this->connect_error);
-			exit;
+			exit('MySQLの接続に失敗しました：'.$this->connect_error);
 		}
 
 		//文字コード指定
 		$this->set_charset('utf8mb4');
+	}
+
+	function query($query, $resultmode = NULL){
+		$result = parent::query($query, $resultmode);
+		if($this->errno>0){
+			echo $this->errno.': '.$this->error.' ('.$query.')'.PHP_EOL;
+		}
+		return $result;
 	}
 }
 
@@ -42,14 +48,14 @@ function getPrevFullRouteFromDB(&$network_list){
 }
 
 //==================== フルルートから抽出した変更情報をDBに反映 ====================//
-function insertFullRouteUpdateToDB($update_route, $next_network_list){
+function insertFullRouteUpdateToDB($update_list, $next_network_list){
 	global $mysqli;
 	global $mysql_datetime;
 
 	foreach(array('v4','v6') as $ip_proto){
 		//------------ delete ------------//
 		$mysqli->begin_transaction();
-		foreach($update_route[$ip_proto]['delete'] as $route){
+		foreach($update_list[$ip_proto]['delete'] as $route){
 			$mysqli->query("delete from RouteInfo$ip_proto where asn={$route[UPDATE_ROUTE_ASN]} and route='{$route[UPDATE_ROUTE_ROUTE]}'");
 		}
 		$mysqli->commit();
@@ -57,7 +63,7 @@ function insertFullRouteUpdateToDB($update_route, $next_network_list){
 		//------------ insert(add) ------------//
 		// v4のinsert時にint型のip_minとip_maxをクォートで囲うことになるが，動作に問題はない
 		$mysqli->begin_transaction();
-		foreach($update_route[$ip_proto]['add'] as $route){
+		foreach($update_list[$ip_proto]['add'] as $route){
 			// (id, asn, route, ip_min, ip_max)
 			$mysqli->query("insert into RouteInfo$ip_proto values".
 					"(null, {$route[UPDATE_ROUTE_ASN]}, '{$route[UPDATE_ROUTE_ROUTE]}', '{$route[UPDATE_ROUTE_IP_MIN]}', '{$route[UPDATE_ROUTE_IP_MAX]}')");
@@ -66,15 +72,15 @@ function insertFullRouteUpdateToDB($update_route, $next_network_list){
 		
 		//------------ update ------------//
 		$mysqli->begin_transaction();
-		foreach($update_route[$ip_proto]['update'] as $asn => $null){
+		foreach($update_list[$ip_proto]['update'] as $asn => $null){
 			// 広告IPが違う値に変更された
 			if(isset($next_network_list[$ip_proto][$asn])){
 				$united_route = implode(',', array_keys($next_network_list[$ip_proto][$asn]));
 				// (id, asn, date_update, UPDATE_ROUTEd)
-				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values (null, $asn, '$mysql_datetime', '$united_route')");
+				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values(null, $asn, '$mysql_datetime', '$united_route')");
 			}// そのASが消えた（経路の広告を1つもしなくなった）
 			else{
-				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values (null, $asn, '$mysql_datetime', null)");
+				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values(null, $asn, '$mysql_datetime', null)");
 			}
 		}
 		$mysqli->commit();
@@ -82,9 +88,17 @@ function insertFullRouteUpdateToDB($update_route, $next_network_list){
 }
 
 //==================== 衝突情報をDBに保存 ====================//
-function insertConflictToDB($route_conflict){
+function insertConflictToDB($conflict_list){
+	global $mysqli;
+	global $mysql_datetime;
+
 	foreach(array('v4','v6') as $ip_proto){
-		
+		$mysqli->begin_transaction();
+		foreach($conflict_list[$ip_proto] as $as_set){
+			// (conflict_id, asn1, asn2, date_conflict)
+			$mysqli->query("insert into ConflictHistory$ip_proto values(null, $as_set, '$mysql_datetime')");
+		}
+		$mysqli->commit();
 	}
 }
 ?>

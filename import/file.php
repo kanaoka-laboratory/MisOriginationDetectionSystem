@@ -75,7 +75,7 @@ function getFullRouteFromBgpdump($filename, &$network_list){
 		else{
 			list($ip,$mask) = explode('/', $ip_prefix);
 			$mask = (int)$mask;
-			if($mask<16) continue;
+			if($mask<19 || $mask>64) continue;
 			$ip = inet_pton($ip);
 			$ip_min = '';
 			$i=0;
