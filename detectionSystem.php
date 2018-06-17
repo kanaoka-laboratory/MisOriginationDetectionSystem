@@ -47,10 +47,14 @@ showLog('変更後データのダウンロード開始');
 	showLog('後日データのダウンロードに失敗しました');
 	exit;
 }
-//==================== 変更後のデータを取得 ====================//
+//==================== 変更後のデータをそれぞれ読み込んで配列に格納 ====================//
 showLog('変更後データの読み込み開始');
-getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.$next_bgpdump_filename, $next_network_list);
+$conflict_exception_list = getFullRouteFromBgpdump(DIR_RIPE_BGPDUMP.$next_bgpdump_filename, $next_network_list);
 showLog('変更後データの読み込み完了');
+// 衝突例外情報をMySQLに保存
+showLog('衝突例外情報保存開始');
+insertConflictExceptionToDB($conflict_exception_list);
+showLog('衝突例外情報保存完了');
 
 //==================== network_listのソート ====================//
 ksort($prev_network_list['v4']);
@@ -75,9 +79,9 @@ showLog('衝突検知開始');
 $conflict_list = detectConflict($next_network_list);
 showLog('衝突検知完了');
 // 衝突情報をMySQLに保存
-showLog('衝突情報抽出開始');
+showLog('衝突情報保存開始');
 insertConflictToDB($conflict_list);
-showLog('衝突情報抽出完了');
+showLog('衝突情報保存完了');
 
 // Mis-Originationの可能性がある経路をフィルタ
 

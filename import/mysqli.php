@@ -101,4 +101,22 @@ function insertConflictToDB($conflict_list){
 		$mysqli->commit();
 	}
 }
+
+//==================== 衝突の例外をDBに保存 ====================//
+function insertConflictExceptionToDB($conflict_exception_list){
+	global $mysqli;
+	global $mysqli_datetime;
+	
+	$mysqli->begin_transaction();
+	foreach($conflict_exception_list as $conflict_exception){
+		// (exception_id, prefix, date)
+		$mysqli->query("insert into ConflictExceptionRoute values(null, '{$conflict_exception[0]}', '$mysqli_datetime')");
+		$exception_id = $mysqli->insert_id;
+		foreach($conflict_exception[1] as $asn){
+			// (exception_id, asn)
+			$mysqli->query("insert into ConflictExceptionAsn values($insert_id, $asn)");
+		}
+	}
+	$mysqli->commit();
+}
 ?>
