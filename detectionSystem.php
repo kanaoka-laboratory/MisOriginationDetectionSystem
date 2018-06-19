@@ -32,8 +32,8 @@ showLog('変更前データの読み込み完了');
 
 // RIPEのURLを作成（00:00分のデータ）
 $next_ts = strtotime($argv[1]);
-$next_dl_filename = 'bview.'.date('Ymd', $next_ts).'.0000.gz';
-$next_bgpdump_filename = date('Ymd', $next_ts).'.0000.bgpdump.txt';
+$next_dl_filename = 'bview.'.date('Ymd.Hi', $next_ts).'.gz';
+$next_bgpdump_filename = date('Ymd.Hi', $next_ts).'.bgpdump.txt';
 $mysql_datetime = date('Y-m-d H:i:s', $next_ts);
 
 // DLして変換

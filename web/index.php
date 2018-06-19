@@ -32,7 +32,7 @@ $mysqli = new mymysqli();
 	ksort($conflict_as_list);
 	echo '<table><tr><th>AS番号<th>衝突AS数';
 	foreach($conflict_as_list as $asn=>$count){
-		echo "<tr><td>$asn<td>$count";
+		echo "<tr><td><a href='asinfo.php?asn=$asn'>$asn</a><td>$count";
 	}
 	echo '</table>';
 	?>
@@ -58,7 +58,7 @@ $mysqli = new mymysqli();
 	ksort($conflict_as_list);
 	echo '<table><tr><th>AS番号<th>衝突AS数';
 	foreach($conflict_as_list as $asn=>$count){
-		echo "<tr><td>$asn<td>$count";
+		echo "<tr><td><a href='asinfo.php?asn=$asn'>$asn</a><td>$count";
 	}
 	echo '</table>';
 	?>
