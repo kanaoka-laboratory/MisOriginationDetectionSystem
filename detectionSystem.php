@@ -1,5 +1,8 @@
 <?php
 //==================== 初期設定 ====================//
+// 引数の処理
+if(!isset($argv[1])) exit('usage: php detectionSystem.php Ymd.Hi'.PHP_EOL.'example: php detectionSystem.php 20180601.0800'.PHP_EOL);
+if(!preg_match('/^\d{8}\.\d{2}00$/',$argv[1])) exit('invalid datetime format: '.$argv[1].PHP_EOL);
 // プログラムのカレントディレクトリを変更
 chdir(dirname(__FILE__));
 // 設定ファイル読み込み
@@ -28,20 +31,21 @@ showLog('変更前データの読み込み完了');
 // このプログラムはcronによってUTC 1:00（JCT 10:00）に起動する
 
 // RIPEのURLを作成（00:00分のデータ）
-$next_ts = time();
-$prev_ts = $next_ts - 60*60*24;
-$prev_dl_filename = 'bview.'.date('Ymd', $prev_ts).'.0000.gz';
+$next_ts = strtotime($argv[1]);
 $next_dl_filename = 'bview.'.date('Ymd', $next_ts).'.0000.gz';
-$prev_bgpdump_filename = date('Ymd', $prev_ts).'_0000.bgpdump.txt';
-$next_bgpdump_filename = date('Ymd', $next_ts).'_0000.bgpdump.txt';
-$mysql_datetime = date('Y-m-d', $next_ts).' 00:00:00';
+$next_bgpdump_filename = date('Ymd', $next_ts).'.0000.bgpdump.txt';
+$mysql_datetime = date('Y-m-d H:i:s', $next_ts);
 
 // DLして変換
 showLog('変更後データのダウンロード開始');
-	if(downloadFile('http://data.ris.ripe.net/rrc00/'.date('Y.m', $next_ts).'/'.$next_dl_filename, DIR_RIPE_DL.$next_dl_filename)){
+if(downloadFile('http://data.ris.ripe.net/rrc00/'.date('Y.m', $next_ts).'/'.$next_dl_filename, DIR_RIPE_DL.$next_dl_filename)){
 	showLog('変更後データのダウンロード完了');
 	// 変換処理
-	shell_exec('/usr/bin/python mrt2bgpdump.py '.DIR_RIPE_DL.$next_dl_filename.' > '.DIR_RIPE_BGPDUMP.$next_bgpdump_filename);
+	showLog('変更後データのbgpdumpへの変換開始');
+	if(is_file(DIR_RIPE_BGPDUMP.$next_bgpdump_filename))
+		showLog('既にファイルが存在しています');
+	else
+		shell_exec('/usr/bin/python mrt2bgpdump.py '.DIR_RIPE_DL.$next_dl_filename.' > '.DIR_RIPE_BGPDUMP.$next_bgpdump_filename);
 	showLog('変更後データのbgpdumpへの変換完了');
 }else{
 	showLog('後日データのダウンロードに失敗しました');

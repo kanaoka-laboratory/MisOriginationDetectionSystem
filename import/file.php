@@ -3,6 +3,10 @@
 // url: ダウンロードするファイルのURL
 // filename: 保存先ファイル名
 function downloadFile($url, $filename){
+	if(is_file($filename)){
+		showLog('downloadFile: 既にファイルが存在しています');
+		return 100;
+	}
 	// ファイルポインタの取得
 	if(($fp_read = fopen($url, 'r')) === false) return false;
 	if(($fp_write = fopen($filename, 'w')) === false) return false;
@@ -48,7 +52,7 @@ function getFullRouteFromBgpdump($filename, &$network_list){
 		// origin ASを取得（,で分割）
 		$as_path_list = explode(' ', $as_path);
 		$origin_as_str = str_replace(array('{','}'), '', $as_path_list[count($as_path_list)-1]);
-		$origin_as_list = explode(',', $origin_as_str);
+		$origin_as_list = array_values(array_unique(explode(',', $origin_as_str)));
 		//------------ $origin_as_listの要素が複数のときは例外を登録 ------------//
 		if(count($origin_as_list)>1){
 			$conflict_exception = array($ip_prefix, $origin_as_list);
@@ -63,7 +67,7 @@ function getFullRouteFromBgpdump($filename, &$network_list){
 		$imax = count($origin_as_list);
 		for($i=0; $i<$imax; $i++){
 			if(isset($network_list[$ip_proto][$origin_as_list[$i]][$ip_prefix]))
-				unset($origin_as_list[$i])
+				unset($origin_as_list[$i]);
 		}
 		if(count($origin_as_list)===0) continue;
 

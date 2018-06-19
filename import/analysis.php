@@ -80,7 +80,7 @@ function detectConflict($network_list){
 					if(strcmp($prefix_info2[NETWORK_LIST_IP_MIN], $prefix_info1[NETWORK_LIST_IP_MAX]) <= 0 
 							&& strcmp($prefix_info1[NETWORK_LIST_IP_MIN], $prefix_info2[NETWORK_LIST_IP_MAX]) <= 0){
 						// echo "AS$as1:$prefix1<=>AS$as2:$prefix2\n";
-						$conflict_list['v4'][] = $as1.','.$as2;
+						$conflict_list['v6'][] = $as1.','.$as2;
 						continue 3;
 					}
 				}

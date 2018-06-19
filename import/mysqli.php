@@ -76,11 +76,11 @@ function insertFullRouteUpdateToDB($update_list, $next_network_list){
 			// 広告IPが違う値に変更された
 			if(isset($next_network_list[$ip_proto][$asn])){
 				$united_route = implode(',', array_keys($next_network_list[$ip_proto][$asn]));
-				// (id, asn, date_update, UPDATE_ROUTEd)
-				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values(null, $asn, '$mysql_datetime', '$united_route')");
+				// (asn, date_update, UPDATE_ROUTEd)
+				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values($asn, '$mysql_datetime', '$united_route')");
 			}// そのASが消えた（経路の広告を1つもしなくなった）
 			else{
-				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values(null, $asn, '$mysql_datetime', null)");
+				$mysqli->query("insert into DetectedUpdateHistory$ip_proto values($asn, '$mysql_datetime', null)");
 			}
 		}
 		$mysqli->commit();
@@ -105,16 +105,16 @@ function insertConflictToDB($conflict_list){
 //==================== 衝突の例外をDBに保存 ====================//
 function insertConflictExceptionToDB($conflict_exception_list){
 	global $mysqli;
-	global $mysqli_datetime;
+	global $mysql_datetime;
 	
 	$mysqli->begin_transaction();
 	foreach($conflict_exception_list as $conflict_exception){
 		// (exception_id, prefix, date)
-		$mysqli->query("insert into ConflictExceptionRoute values(null, '{$conflict_exception[0]}', '$mysqli_datetime')");
+		$mysqli->query("insert into ConflictExceptionRoute values(null, '{$conflict_exception[0]}', '$mysql_datetime')");
 		$exception_id = $mysqli->insert_id;
 		foreach($conflict_exception[1] as $asn){
 			// (exception_id, asn)
-			$mysqli->query("insert into ConflictExceptionAsn values($insert_id, $asn)");
+			$mysqli->query("insert into ConflictExceptionAsn values($exception_id, $asn)");
 		}
 	}
 	$mysqli->commit();
