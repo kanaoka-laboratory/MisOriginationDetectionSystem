@@ -3,10 +3,8 @@
 // url: ダウンロードするファイルのURL
 // filename: 保存先ファイル名
 function downloadFile($url, $filename){
-	if(is_file($filename)){
-		showLog('downloadFile: 既にファイルが存在しています');
-		return 100;
-	}
+	if(is_file($filename))
+		showLog("既にファイルが存在しています: $filename", true);
 	// ファイルポインタの取得
 	if(($fp_read = fopen($url, 'r')) === false) return false;
 	if(($fp_write = fopen($filename, 'w')) === false) return false;
@@ -32,91 +30,39 @@ function downloadFile($url, $filename){
 
 //==================== bgpdump形式のテキストファイルの情報を配列に格納する（フルルート用） ====================//
 // filename: 読み込むbgpdump形式のテキストファイル
-// network_list: 格納先の配列（参照渡し）
-function getFullRouteFromBgpdump($filename, &$network_list){
-	// 代入先を初期化
-	$network_list = array('v4'=>array(), 'v6'=>array());
-	$conflict_exception_list = array();
+// 戻り値: network_list: 格納先の配列（参照渡し）
+function getFullRouteFromBgpdump($filename){
+	//------------ ファイルの存在確認 ------------//
+	// if(!is_file($filename)) showLog('getFullRouteFromBgpdump: ファイルが存在しません: '.$filename);
 
-	// ファイルポインタの取得
-	if(($fp = fopen($filename, 'r')) === false)
-		return false;
-	
-	// 1行ずつ読み込み
+	//------------ 代入先を初期化 ------------//
+	$network_list = array('v4'=>array(), 'v6'=>array());
+
+	//------------ ファイルの読み込み ------------//
+	$fp = fopen($filename, 'r');
 	while(($row = fgets($fp)) !== false){
 		//------------ 行の読み込み ------------//
 		// 1行にまとまったデータを分割
 		list($protocol, $datetime, $type, $null1, $null2, $ip_prefix, $as_path, $origin_attr) = explode('|', rtrim($row));
 		// 日付を再フォーマット		
 		$datetime = date('Y-m-d H:i:s', strtotime($datetime));
-		// origin ASを取得（,で分割）
-		$as_path_list = explode(' ', $as_path);
-		$origin_as_str = str_replace(array('{','}'), '', $as_path_list[count($as_path_list)-1]);
-		$origin_as_list = array_values(array_unique(explode(',', $origin_as_str)));
-		//------------ $origin_as_listの要素が複数のときは例外を登録 ------------//
-		if(count($origin_as_list)>1){
-			$conflict_exception = array($ip_prefix, $origin_as_list);
-			if(!in_array($conflict_exception, $conflict_exception_list, true))
-				$conflict_exception_list[] = $conflict_exception;
-		}
-		
 		// $ip_protoの検出
 		$ip_proto = strpos($ip_prefix, ':')===false? 'v4': 'v6';
-
-		//------------ 重複する経路は追加しない ------------//
-		$imax = count($origin_as_list);
-		for($i=0; $i<$imax; $i++){
-			if(isset($network_list[$ip_proto][$origin_as_list[$i]][$ip_prefix]))
-				unset($origin_as_list[$i]);
+		// $prev_network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
+		if(!isset($network_list[$ip_proto][$ip_prefix])){
+			list($network, $broadcast) = getNetworkBroadcast($ip_prefix, $ip_proto);
+			if($broadcast===null) continue;
+			$network_list[$ip_proto][$ip_prefix] = array('network'=>$network, 'broadcast'=>$broadcast);
 		}
-		if(count($origin_as_list)===0) continue;
-
-		//------------ IPプレフィックスのネットワーク・ブロードキャストアドレス（両端）の計算 ------------//
-		// IPv4アドレスをint値で保存（0x0〜0xFFFFFFFF）
-		if($ip_proto==='v4'){
-			list($ip,$mask) = explode('/', $ip_prefix);
-			if($mask<8) continue;
-			list($a,$b,$c,$d) = explode('.', $ip);
-			$ip_min = $a<<24 | $b<<16 | $c<<8 | $d;
-			$ip_max = $ip_min | 0xFFFFFFFF>>$mask;
-		}// IPv6アドレスを文字列で保存（'00000000000000000000000000000000'〜'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'）
-		else{
-			list($ip,$mask) = explode('/', $ip_prefix);
-			$mask = (int)$mask;
-			if($mask<19 || $mask>64) continue;
-			$ip = inet_pton($ip);
-			$ip_min = '';
-			$i=0;
-			foreach(str_split($ip) as $char){
-				$i+=8;
-				if($i===$mask){
-					$ip_min .= str_pad(dechex(ord($char)), 2, '0', STR_PAD_LEFT);
-					$ip_max = $ip_min;
-					break;
-				}elseif($i<$mask){
-					$ip_min .= str_pad(dechex(ord($char)), 2, '0', STR_PAD_LEFT);
-				}else{
-					$dec = ord($char);
-					$ip_max = $ip_min.str_pad(dechex($dec|0xff>>$mask%8), 2, '0', STR_PAD_LEFT);
-					$ip_min .= str_pad(dechex($dec), 2, '0', STR_PAD_LEFT);
-					break;
-				}
-			}
-			$ip_max = str_pad($ip_max, 32, 'f', STR_PAD_RIGHT);
-			$ip_min = str_pad($ip_min, 32, '0', STR_PAD_RIGHT);
-		}
-
-		//------------ IPv4とIPv6を区別して$network_listに経路情報を追加 ------------//
-		foreach($origin_as_list as $origin_as){
-			// 初めてのOrigin-ASの場合は経路配列を初期化
-			if(!isset($network_list[$ip_proto][$origin_as]))
-				$network_list[$ip_proto][$origin_as] = array();
-			// 経路を追加する
-			$network_list[$ip_proto][$origin_as][$ip_prefix] = array($ip_min, $ip_max);
+		// すべてのOriginASを$prev_network_listに追加
+		$as_path_list = explode(' ', $as_path);
+		foreach(explode(',', str_replace(array('{','}'), '', end($as_path_list))) as $origin_as){
+			$network_list[$ip_proto][$ip_prefix][$origin_as] = true;
 		}
 	}
 	fclose($fp);
-
-	return $conflict_exception_list;
+	
+	//------------ 取得した$network_listを返す ------------//
+	return $network_list;
 }
 ?>

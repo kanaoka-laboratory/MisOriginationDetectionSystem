@@ -1,94 +1,45 @@
 <?php
-//==================== 変更前と変更後の経路情報を比較して変更があった経路の情報を返す ====================//
-function detectUpdate($prev_network_list, $next_network_list){
-	// 変更を保存する配列
-	$update_list = array(	'v4'=>array('add'=>array(),'delete'=>array(),'update'=>array()),
-							'v6'=>array('add'=>array(),'delete'=>array(),'update'=>array())	);
-	
-	// 重複する経路を$prev_network_listからunset
-	foreach(array('v4','v6') as $ip_proto){
-		foreach($next_network_list[$ip_proto] as $as => $as_info){
-			foreach($as_info as $prefix => $prefix_info){
-				// 変更がない（変更前・変更後どちらにも同じ経路が存在する）場合はスキップ
-				if(isset($prev_network_list[$ip_proto][$as][$prefix])){
-					unset($prev_network_list[$ip_proto][$as][$prefix]);
-					continue;
-				}
-				// 変更（追加された経路）を$update_list['add']に追加
-				$update_list[$ip_proto]['add'][] = array($as, $prefix, $prefix_info[NETWORK_LIST_IP_MIN], $prefix_info[NETWORK_LIST_IP_MAX]);
-				// 変更のあったASをキーとして$update_list['update']に追加
-				$update_list[$ip_proto]['update'][$as] = true;
-			}
+//==================== IPプレフィックスのネットワーク・ブロードキャストアドレスを返す ====================//
+// 返り値：array($network, $broadcast);
+function getNetworkBroadcast($ip_prefix, $ip_proto = null){
+	if($ip_proto!=='v4' && $ip_proto!=='v6')
+		$ip_proto = (strpos($ip_prefix,':')===false)? 'v4': 'v6';
+	//------------ IPv4 ------------//
+	// アドレスをint値で保存（0x0〜0xFFFFFFFF）
+	if($ip_proto==='v4'){
+		// アドレスとネットマスクを分割
+		list($ip,$mask) = explode('/', $ip_prefix);
+		$mask = (int)$mask;
+		// サブネットマスクが不正なときは処理を中断
+		if($mask===0) return null;
+		if(IGNORE_ILLEGAL_SUBNET && $mask<8) return null;
+		// アドレス（string）をint値に変換
+		list($octet1,$octet2,$octet3,$octet4) = explode('.', $ip);
+		$network = $octet1<<24 | $octet2<<16 | $octet3<<8 | $octet4;
+		$broadcast = $network | 0xFFFFFFFF>>$mask;
+	}//------------ v6 ------------//
+	// アドレス上位64bitをintで保存（'0x0'〜'0x7FFFFFFFFFFFFFFF'）
+	// intの正の値は63bitまでしか表現できないが，v6で最上位のビットが1になるアドレスは存在しない
+	else{
+		// アドレスとネットマスクを分割
+		list($ip,$mask) = explode('/', $ip_prefix);
+		$mask = (int)$mask;
+		// サブネットマスクが不正なときは処理を中断
+		if($mask===0 ||  $mask>64) return null;
+		if(IGNORE_ILLEGAL_SUBNET && $mask<19) return null;
+		// アドレス（string）を128bitバイナリに変換
+		if(($ip = inet_pton($ip)) === false){
+			showLog('getNetworkBroadcast: 無効なIPアドレス: '.$ip_prefix);
+			return null;
 		}
-		// $prev_network_listに残った経路を検出
-		foreach($prev_network_list[$ip_proto] as $as => $as_info){
-			foreach($as_info as $prefix => $prefix_info){
-				// 残っている要素（経路）$update_list['delete']に追加
-				$update_list[$ip_proto]['delete'][] = array($as, $prefix);
-				// 変更のあったASをキーとして$update_list['update']に追加
-				$update_list[$ip_proto]['update'][$as] = true;
-			}
-		}
+		// 128bitバイナリから上位64bitをint値に変換
+		list($octet1,$octet2,$octet3,$octet4,$octet5,$octet6,$octet7,$octet8) = str_split($ip);
+		$network = ord($octet1)<<56 | ord($octet2)<<48 | ord($octet3)<<40 | ord($octet4)<<32 | ord($octet5)<<24 | ord($octet6)<<16 | ord($octet7)<<8 | ord($octet8);
+		// 0xFFFFFFFFFFFFFFFFはオーバーフローして負の値（-1）になり，いくら右シフトしても値が変わらない
+		$broadcast = $network | ~(-1<<(64-$mask));
 	}
-
-	return $update_list;
-}
-
-//==================== その日のnetwork_listを分析してプレフィックスが衝突するASを検索 ====================//
-// network_list: ネットワーク情報が入った配列
-// 個人メモ：PHPはCopy on Writeがあるから，Read-Onlyの場合は巨大な配列でも参照渡しの必要がない
-function detectConflict($network_list){
-	// 経路が衝突したASの組み合わせを保存する配列
-	$conflict_list = array('v4'=>array(), 'v6'=>array());
-	
-	//------------ v4 ------------//
-	// network_listのASを総当りで比較（同じAS同士はスキップ）
-	$length = count($network_list['v4']);
-	for($i=0; $i<$length-1; $i++){
-		// showLog('衝突検知中：'.($i+1).'/'.$length);
-		$as1 = key(array_slice($network_list['v4'], $i, 1, true));
-		$as_info1 = $network_list['v4'][$as1];
-		$network_list2 = array_slice($network_list['v4'], $i+1, null, true);
-		foreach($network_list2 as $as2 => $as_info2){
-			// 2つのASがそれぞれ広告しているIPプレフィックス同士を比較
-			foreach($as_info1 as $prefix1 => $prefix_info1){
-				foreach($as_info2 as $prefix2 => $prefix_info2){
-					// 衝突するプレフィックスがあれば出力
-					if($prefix_info2[NETWORK_LIST_IP_MIN] <= $prefix_info1[NETWORK_LIST_IP_MAX]
-							&& $prefix_info1[NETWORK_LIST_IP_MIN] <= $prefix_info2[NETWORK_LIST_IP_MAX]){
-						// echo "AS$as1:$prefix1<=>AS$as2:$prefix2\n";
-						$conflict_list['v4'][] = $as1.','.$as2;
-						continue 3;
-					}
-				}
-			}
-		}
-	}
-
-	//------------ v6 ------------//
-	$length = count($network_list['v6']);
-	for($i=0; $i<$length-1; $i++){
-		// showLog('衝突検知中：'.$i.'/'.$length);
-		$as1 = key(array_slice($network_list['v6'], $i, 1, true));
-		$as_info1 = $network_list['v6'][$as1];
-		$network_list2 = array_slice($network_list['v6'], $i+1, null, true);
-		foreach($network_list2 as $as2 => $as_info2){
-			// 2つのASがそれぞれ広告しているIPプレフィックス同士を比較
-			foreach($as_info1 as $prefix1 => $prefix_info1){
-				foreach($as_info2 as $prefix2 => $prefix_info2){
-					// 衝突するプレフィックスがあれば出力
-					if(strcmp($prefix_info2[NETWORK_LIST_IP_MIN], $prefix_info1[NETWORK_LIST_IP_MAX]) <= 0 
-							&& strcmp($prefix_info1[NETWORK_LIST_IP_MIN], $prefix_info2[NETWORK_LIST_IP_MAX]) <= 0){
-						// echo "AS$as1:$prefix1<=>AS$as2:$prefix2\n";
-						$conflict_list['v6'][] = $as1.','.$as2;
-						continue 3;
-					}
-				}
-			}
-		}
-	}
-
-	return $conflict_list;
+	// ネットワークアドレスとブロードキャストアドレスを返す	
+	return array($network, $broadcast);
 }
 
 ?>
