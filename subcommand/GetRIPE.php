@@ -18,22 +18,40 @@ function GetRIPE($start, $end){
 	// 8時間ごとに時間をずらしながら実行
 	while($ts<=$end_ts){
 		// URL等の作成
-		$Ymd_Hi = date('Ymd.Hi',$ts);
-		$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
-		$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
-		$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
+		$ripe = MakeRIPEDownloadParam($ts);
 		
 		// ファイルをDL
-		showLog('downloading: '.date('Y-m-d H:i',$ts)." ($url)");
-		if(downloadFile($url, $file_gz)){
+		showLog('downloading: '.date('Y-m-d H:i',$ts)." ({$ripe['url']})");
+		if(downloadFile($ripe['url'], $ripe['gz'])){
 			// DLに成功したらbgpdumpに展開
-			showLog("extracting bgpdump: $file_gz > $file_bgpdump");
-			shell_exec("/usr/bin/python script/mrt2bgpdump.py $file_gz > $file_bgpdump &");
+			showLog("extracting bgpdump: {$ripe['gz']} > {$ripe['bgpdump']}");
+			shell_exec("/usr/bin/python script/mrt2bgpdump.py {$ripe['gz']} > {$ripe['bgpdump']} &");
 		}else{
-			// DLに失敗したらログ出力だけ
-			showLog('download failed');
+			// 一時的に1分戻す
+			$ts -= 60;
+			$ripe = MakeRIPEDownloadParam($ts);
+			// ファイルをDL
+			showLog('failed, retry: '.date('Y-m-d H:i',$ts)." ({$ripe['url']})");
+			if(downloadFile($ripe['url'], $ripe['gz'])){
+				// DLに成功したらbgpdumpに展開
+				showLog("extracting bgpdump: {$ripe['gz']} > {$ripe['bgpdump']}");
+				shell_exec("/usr/bin/python script/mrt2bgpdump.py {$ripe['gz']} > {$ripe['bgpdump']} &");
+			}else{
+				// DLに失敗したらログ出力だけ
+				showLog('download failed');
+			}
+			// 一時的に遡った分未来へ戻る．Back to the future!
+			$ts += 60;
 		}
 		$ts += 60*60*8;
 	}
+}
+
+function MakeRIPEDownloadParam($ts){
+	$Ymd_Hi = date('Ymd.Hi',$ts);
+	$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
+	$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
+	$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
+	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump);
 }
 ?>
