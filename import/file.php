@@ -4,14 +4,14 @@
 // filename: 保存先ファイル名
 function downloadFile($url, $filename){
 	if(is_file($filename))
-		showLog("既にファイルが存在しています: $filename", true);
+		showLog("既にファイルが存在しているため上書きします: $filename");
 	
 	// DL用ファイルポインタの取得
 	if(($fp_read = fopen($url, 'r', false, stream_context_create(array('http'=>array('ignore_errors'=>true))))) === false) return false;
 	// 200以外はエラー
 	preg_match('/HTTP\/1\.[0|1|x] ([0-9]{3})/', $http_response_header[0], $matches);
 	if($matches[1] !== '200'){
-		fclose($fp);
+		fclose($fp_read);
 		return false;
 	}
 	// 書き込み用ファイルポインタの取得

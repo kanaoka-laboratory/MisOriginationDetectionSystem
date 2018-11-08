@@ -2,14 +2,11 @@
 function AnalyseKindAndChangeNum($track_result){
 	//==================== 引数チェック・前処理 ====================//
 	// 引数チェック（ファイルの存在確認）
-	if(!is_file($track_result)) showLog("ファイルが存在しません: $track_result");
+	if(!is_file($track_result)) showLog("ファイルが存在しません: $track_result", true);
 	// 出力ディレクトリ名を作成
 	$basename = explode('_', basename($track_result,'.csv'), 2);
 	$outdir = ANALYSE_KIND_AND_CHANGE_NUM_RESULT . (strpos($basename[0],'Include')===false?'ExactMatch_':'IncludeMatch_') . $basename[1];
-	if(is_dir($outdir)){
-		for($i=2; is_dir("$oudir($i)"); $i++){ /* Enpty */ }
-		$oudir = "$outdir($i)";
-	}
+	if(is_dir($outdir)) showLog("出力先ディレクトリがすでに存在します: $outdir", true);
 	mkdir($outdir);
 
 	//==================== ファイルを読み込む ====================//
@@ -102,7 +99,5 @@ function AnalyseKindAndChangeNum($track_result){
 		}
 	}
 	fclose($fp);
-	// RawData
-	
 }
 ?>

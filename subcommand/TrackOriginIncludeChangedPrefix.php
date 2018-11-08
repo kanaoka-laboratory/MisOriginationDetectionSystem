@@ -4,8 +4,6 @@ function TrackOriginIncludeChangedPrefix($start, $end){
 	$start_ts = strtotime($start);
 	$end_ts = strtotime($end);
 	if($start_ts>$end_ts) showLog('終了日時が開始日時より前です', true);
-	
-	// 実行内容の表示
 
 	//==================== 基準時データ読み込み ====================//
 	// ファイル名を作成
@@ -180,5 +178,8 @@ function TrackOriginIncludeChangedPrefix($start, $end){
 
 	// クローズ
 	fclose($fp);
+
+	// 結果ファイルのファイル名を返す
+	return "$filebasename.csv";
 }
 ?>

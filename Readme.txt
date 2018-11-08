@@ -50,3 +50,41 @@ MODS.phpを編集（MODSオプション一覧への簡易説明，オプショ�
 		],
 	},
 }
+
+
+//------------ GroupChangesOfOriginASのタイプ ------------//
+Type0: 変化無し（特記事項なし）
+	ex. A A A A A A A A
+	ex. A/B A/B A/B A/B 
+Type1: 1回のみ変化（正常な変化と思われる）
+	ex. A B B B B B B B B
+	ex. A A A A . . . . .
+	ex. A A A A/B A/B 	A/B
+Type2: 常にある1ASが登場（MisOrigination可能性あり）
+	ex. A A/B A A A/B A/B A A/B
+Type3: 空白と1種類のOriginASのみ（何やってるのか怪しいAS）
+	ex. A A . A . . . A A
+	ex. A/B . . A/B A/B .
+Type4: その他・空白なし（どうなってるのかわからない・MultipleOrigin？）
+	ex. A A B B A A A B A
+	ex. A A/B B B B A A/B
+Type5: その他・空白あり（どうなってるのかわからない）
+	ex. A . A/B B A/B A . 
+	ex. A A . B . B A . A
+
+				1	2	3	4	5	6
+data_kind_num	1	2	≧2	2	≧2	≧3
+change_num		0	1	≧2	≧2	≧2	≧2
+has_blank		F	-	F	T	F	T
+
+change_num 0->(0)
+	≧2	   1->(1)
+	|
+has_blank false--------常にある1ASが存在する true->(2)
+   true 						false
+    |							  |
+data_kind_num ≧3->(5)			 (4)
+	2
+	|
+   (3)
+	

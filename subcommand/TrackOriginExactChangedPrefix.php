@@ -154,5 +154,8 @@ function TrackOriginExactChangedPrefix($start, $end){
 
 	// クローズ
 	fclose($fp);
+
+	// 結果ファイルのファイル名を返す
+	return "$filebasename.csv";
 }
 ?>
