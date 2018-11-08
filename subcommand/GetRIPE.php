@@ -4,12 +4,6 @@ function GetRIPE($start, $end = null){
 	// 開始・終了時間を設定
 	$ts = strtotime($start);
 	$end_ts = strtotime($end);
-	// 終了時間がUTCで未来になるのを防ぐ
-	$end_max_ts = strtotime('9 hours ago');
-	if($end_ts > $end_max_ts) $end_ts = $end_max_ts;
-	// タイムスタンプが8時間おきのあたい出ない場合はエラー
-	if(!in_array(date('His',$ts), ['000000','080000','160000'], true))
-		showLog('illegal start date', true);
 
 	// 実行内容の表示
 	showLog(date('Y-m-d H:i', $ts) . '〜' . date('Y-m-d H:i', $end_ts) . 'のフルルート情報を取得します');
@@ -53,14 +47,5 @@ function GetRIPE($start, $end = null){
 		}
 		$ts += 60*60*8;
 	}
-}
-
-function MakeRIPEDownloadParam($ts){
-	$Ymd_Hi = date('Ymd.Hi', $ts);
-	$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
-	$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
-	$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
-	$file_phpdata = RIPE_FULL_PHPDATA."$Ymd_Hi.dat";
-	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'phpdata'=>$file_phpdata);
 }
 ?>

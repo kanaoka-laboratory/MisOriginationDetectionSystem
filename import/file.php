@@ -73,4 +73,14 @@ function getFullRouteFromBgpdump($filename){
 	//------------ 取得した$network_listを返す ------------//
 	return $network_list;
 }
+
+//==================== タイムスタンプから，RIPEからのダウンロードに必要なパラメタ作成する ====================//
+function MakeRIPEDownloadParam($ts){
+	$Ymd_Hi = date('Ymd.Hi', $ts);
+	$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
+	$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
+	$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
+	$file_phpdata = RIPE_FULL_PHPDATA."$Ymd_Hi.dat";
+	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'phpdata'=>$file_phpdata);
+}
 ?>

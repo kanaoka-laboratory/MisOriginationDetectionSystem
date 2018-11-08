@@ -5,6 +5,7 @@ $subcommand = isset($argv[1])? $argv[1]: '';
 $subcommand_usage = array(
 	'GetRIPE'							=> 'GetRIPE <START> [<END>]                       : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
 	'GetRIPEUpdate'						=> 'GetRIPEUpdate <START> [<END>]                 : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
+	'ExtractPHPDataFromBGPDUMP'			=> 'ExtractPHPDataFromBGPDUMP <START> [<END>]     : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
 	'TrackOriginExactChangedPrefix'		=> 'TrackOriginExactChangedPrefix <START> <END>   : OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを追跡する',
 	'TrackOriginIncludeChangedPrefix'	=> 'TrackOriginIncludeChangedPrefix <START> <END> : OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを追跡する',
 	'AnalyseKindAndChangeNum'			=> 'AnalyseKindAndChangeNum <FILENAME>            : OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する',
@@ -45,6 +46,7 @@ try{
 	//------------ GetRIPE, GetRIPEUpdate ------------//
 	case 'GetRIPE':
 	case 'GetRIPEUpdate':
+	case 'ExtractPHPDataFromBGPDUMP':
 		if(!isset($option[0])) throw new Exception();
 		startLogging($subcommand);
 		$subcommand($option[0], isset($option[1])?$option[1]:null);
@@ -90,9 +92,10 @@ catch(Exception $e){
 	//------------ GetRIPE, GetRIPEUpdate ------------//
 	case 'GetRIPE':
 	case 'GetRIPEUpdate':
+	case 'ExtractPHPDataFromBGPDUMP':
 		echo'  START : 取得を開始する日時 ex. 2018-01-01_00:00',PHP_EOL,
 			'  END   : 取得を終了する日時',PHP_EOL,
-			'          省略した場合は可能な限り最新の日時',PHP_EOL;
+			'          省略した場合はSTARTの1分後',PHP_EOL;
 		break;
 	//------------ TrackOriginExactChangedPrefix, TrackOriginIncludeChangedPrefix ------------//
 	case 'TrackOriginExactChangedPrefix':
