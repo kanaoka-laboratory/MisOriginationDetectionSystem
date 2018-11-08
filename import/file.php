@@ -4,9 +4,17 @@
 // filename: 保存先ファイル名
 function downloadFile($url, $filename){
 	if(is_file($filename))
-		showLog("既にファイルが存在しています: $filename", true);
-	// ファイルポインタの取得
-	if(($fp_read = fopen($url, 'r')) === false) return false;
+		showLog("既にファイルが存在しているため上書きします: $filename");
+	
+	// DL用ファイルポインタの取得
+	if(($fp_read = fopen($url, 'r', false, stream_context_create(array('http'=>array('ignore_errors'=>true))))) === false) return false;
+	// 200以外はエラー
+	preg_match('/HTTP\/1\.[0|1|x] ([0-9]{3})/', $http_response_header[0], $matches);
+	if($matches[1] !== '200'){
+		fclose($fp_read);
+		return false;
+	}
+	// 書き込み用ファイルポインタの取得
 	if(($fp_write = fopen($filename, 'w')) === false) return false;
 	
 	// 8KBずつ読み込んでファイルに保存していく
@@ -64,5 +72,15 @@ function getFullRouteFromBgpdump($filename){
 	
 	//------------ 取得した$network_listを返す ------------//
 	return $network_list;
+}
+
+//==================== タイムスタンプから，RIPEからのダウンロードに必要なパラメタ作成する ====================//
+function MakeRIPEDownloadParam($ts){
+	$Ymd_Hi = date('Ymd.Hi', $ts);
+	$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
+	$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
+	$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
+	$file_phpdata = RIPE_FULL_PHPDATA."$Ymd_Hi.dat";
+	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'phpdata'=>$file_phpdata);
 }
 ?>

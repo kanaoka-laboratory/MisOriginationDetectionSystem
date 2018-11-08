@@ -3,3 +3,4 @@
 /data/RIPE/*/*
 /log/*/*
 !.gitkeep
+.DS_Store
