@@ -1,14 +1,14 @@
 <?php
 function ExtractPHPDataFromBGPDUMP($start, $end = null){
-	if($end===null) $end = "$start +1 minute";
+	if($end===null) $end = $start;
 	// 開始・終了時間を設定
 	$ts = strtotime($start);
-	$end_ts = strtotime($end);
+	$ts_end = strtotime($end);
 
 	// 8時間ごとに時間をずらしながら実行
-	while($ts < $end_ts){
+	for(;$ts <= $ts_end; $ts += 60*60*8;){
 		// URL等の作成
-		$ripe = MakeRIPEDownloadParam($ts);
+		$ripe = MakeRIPEParam($ts);
 		// bgpdumpファイルがない場合はエラーを表示してスキップ
 		if(!is_file($ripe['bgpdump'])){
 			showLog("file not found: {$ripe['bgpdump']}");
@@ -18,8 +18,6 @@ function ExtractPHPDataFromBGPDUMP($start, $end = null){
 		showLog("extracting: {$ripe['bgpdump']} > {$ripe['phpdata']}");
 		$network_list = getFullRouteFromBgpdump($ripe['bgpdump']);
 		file_put_contents($ripe['phpdata'], serialize($network_list));
-
-		$ts += 60*60*8;
 	}
 }
 ?>

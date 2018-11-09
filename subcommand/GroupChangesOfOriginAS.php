@@ -93,7 +93,7 @@ function GroupChangesOfOriginAS($track_result){
 	fclose($fp);
 	
 	//==================== データの出力 ====================//
-	showLog('生データ・統計データを出力');
+	showLog('結果の出力');
 	$imax = count($result);
 	for($i=0;$i<$imax;$i++) file_put_contents("$outdir/Type$i.csv", $result[$i]);
 }

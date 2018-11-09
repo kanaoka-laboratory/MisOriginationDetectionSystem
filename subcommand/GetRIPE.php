@@ -1,6 +1,6 @@
 <?php
 function GetRIPE($start, $end = null){
-	if($end===null) $end = "$start +1 minute";
+	if($end===null) $end = $start;
 	// 開始・終了時間を設定
 	$ts = strtotime($start);
 	$end_ts = strtotime($end);
@@ -9,9 +9,9 @@ function GetRIPE($start, $end = null){
 	showLog(date('Y-m-d H:i', $ts) . '〜' . date('Y-m-d H:i', $end_ts) . 'のフルルート情報を取得します');
 
 	// 8時間ごとに時間をずらしながら実行
-	while($ts < $end_ts){
+	while($ts <= $end_ts){
 		// URL等の作成
-		$ripe = MakeRIPEDownloadParam($ts);
+		$ripe = MakeRIPEParam($ts);
 		$failed_count = 0;
 		// 展開に成功するか3回失敗するまでDL・展開を繰り返す
 		while($failed_count < 3){
@@ -21,11 +21,10 @@ function GetRIPE($start, $end = null){
 				if(!downloadFile($ripe['url'], $ripe['gz'])){
 					// 一時的に1分戻す（$ts2）
 					$ts2 = $ts-60;
-					$ripe2 = MakeRIPEDownloadParam($ts2);
+					$ripe2 = MakeRIPEParam($ts2);
 					// ファイルをDL
 					showLog('failed, retry: '.date('Y-m-d H:i',$ts2)." ({$ripe2['url']})");
-					if(!downloadFile($ripe2['url'], $ripe['gz']))
-						throw new Exception();
+					if(!downloadFile($ripe2['url'], $ripe['gz'])) throw new Exception();
 				}
 
 				// DLに成功したらbgpdumpに展開

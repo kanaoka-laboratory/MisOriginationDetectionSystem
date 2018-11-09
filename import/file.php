@@ -56,13 +56,13 @@ function getFullRouteFromBgpdump($filename){
 		$datetime = date('Y-m-d H:i:s', strtotime($datetime));
 		// $ip_protoの検出
 		$ip_proto = strpos($ip_prefix, ':')===false? 'v4': 'v6';
-		// $prev_network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
+		// $network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
 		if(!isset($network_list[$ip_proto][$ip_prefix])){
 			list($network, $broadcast) = getNetworkBroadcast($ip_prefix, $ip_proto);
 			if($broadcast===null) continue;
 			$network_list[$ip_proto][$ip_prefix] = array('network'=>$network, 'broadcast'=>$broadcast);
 		}
-		// すべてのOriginASを$prev_network_listに追加
+		// すべてのOriginASを$network_listに追加
 		$as_path_list = explode(' ', $as_path);
 		foreach(explode(',', str_replace(array('{','}'), '', end($as_path_list))) as $origin_as){
 			$network_list[$ip_proto][$ip_prefix][$origin_as] = true;
@@ -74,13 +74,26 @@ function getFullRouteFromBgpdump($filename){
 	return $network_list;
 }
 
-//==================== タイムスタンプから，RIPEからのダウンロードに必要なパラメタ作成する ====================//
-function MakeRIPEDownloadParam($ts){
+//==================== タイムスタンプから，RIPEからのダウンロード等に必要なパラメタ作成する ====================//
+function MakeRIPEParam($ts){
 	$Ymd_Hi = date('Ymd.Hi', $ts);
 	$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
 	$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
 	$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
 	$file_phpdata = RIPE_FULL_PHPDATA."$Ymd_Hi.dat";
 	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'phpdata'=>$file_phpdata);
+}
+
+//==================== タイムスタンプから，RIPEからのダウンロード等に必要なパラメタ作成する ====================//
+function MakeRIPEUpdateParam($ts){
+	$Y_m = date('Y.m', $ts);
+	$Ymd_Hi = date('Ymd.Hi', $ts);
+	$url = "http://data.ris.ripe.net/rrc00/$Y_m/updates.$Ymd_Hi.gz";
+	$file_gz = RIPE_UPDATE_GZ."$Y_m/updates.$Ymd_Hi.gz";
+	$file_bgpdump = RIPE_UPDATE_BGPDUMP."$Y_m/$Ymd_Hi.bgpdump.txt";
+	// DL先ディレクトリがなかった場合は作成
+	if(!is_dir(RIPE_UPDATE_GZ.$Y_m)) mkdir(RIPE_UPDATE_GZ.$Y_m);
+	if(!is_dir(RIPE_UPDATE_BGPDUMP.$Y_m)) mkdir(RIPE_UPDATE_BGPDUMP.$Y_m);
+	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump);
 }
 ?>
