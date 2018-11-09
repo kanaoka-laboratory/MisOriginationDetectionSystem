@@ -56,13 +56,13 @@ function getFullRouteFromBgpdump($filename){
 		$datetime = date('Y-m-d H:i:s', strtotime($datetime));
 		// $ip_protoの検出
 		$ip_proto = strpos($ip_prefix, ':')===false? 'v4': 'v6';
-		// $prev_network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
+		// $network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
 		if(!isset($network_list[$ip_proto][$ip_prefix])){
 			list($network, $broadcast) = getNetworkBroadcast($ip_prefix, $ip_proto);
 			if($broadcast===null) continue;
 			$network_list[$ip_proto][$ip_prefix] = array('network'=>$network, 'broadcast'=>$broadcast);
 		}
-		// すべてのOriginASを$prev_network_listに追加
+		// すべてのOriginASを$network_listに追加
 		$as_path_list = explode(' ', $as_path);
 		foreach(explode(',', str_replace(array('{','}'), '', end($as_path_list))) as $origin_as){
 			$network_list[$ip_proto][$ip_prefix][$origin_as] = true;

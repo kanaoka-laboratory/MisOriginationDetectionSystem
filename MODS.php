@@ -13,6 +13,7 @@ $subcommand_usage = array(
 	'AnalyseKindAndChangeNum'			=> 'AnalyseKindAndChangeNum <FILENAME>            : OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する',
 	'TrackAndAnalyseKindAndChangeNum'	=> 'TrackAndAnalyseKindAndChangeNum <START> <END> : TrackOrigin(Exact|Include)ChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
 	'GroupChangesOfOriginAS'			=> 'GroupChangesOfOriginAS <FILENAME>             : OriginASに変更のあったIPプレフィックスの追跡結果を，OriginASの変更の仕方により細分化する',
+	'AnalyseAdvertisementUpdate'		=> 'AnalyseAdvertisementUpdate <START> [<END>]    : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
 	'GetASCountry'						=> 'GetASCountry <DATE>                           : ASと国の紐づけを取得する',
 	'CronRIPEFull'						=> 'CronRIPEFull                                  : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
 	'CronRIPEUpdate'					=> 'CronRIPEUpdate                                : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
@@ -81,6 +82,12 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0], $option[1]);
 		break;
+	//------------ AnalyseAdvertisementUpdate ------------//
+	case 'AnalyseAdvertisementUpdate':
+		if(!isset($option[0])) throw new Exception();
+		startLogging($subcommand);
+		$subcommand($option[0], isset($option[1])?$option[1]:null);
+		break;
 	//------------ GetASCountry ------------//
 	case 'GetASCountry':
 		startLogging($subcommand);
@@ -136,6 +143,11 @@ catch(Exception $e){
 		echo'  START : 変更検出の基準となる日時',PHP_EOL,
 			'          この日時と次（8時間後）の日時を比較して変更があったIPプレフィックスを追跡する',PHP_EOL,
 			'  END   : 変更検出を行う期間の終了日時',PHP_EOL;
+		break;
+	//------------ AnalyseAdvertisementUpdate ------------//
+	case 'AnalyseAdvertisementUpdate':
+		echo'  START : 分析対象の日付',PHP_EOL,
+			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
 	//------------ GetASCountry ------------//
 	case 'GetASCountry':

@@ -9,7 +9,6 @@ function GetRIPE($start, $end = null){
 	showLog(date('Y-m-d H:i', $ts) . '〜' . date('Y-m-d H:i', $end_ts) . 'のフルルート情報を取得します');
 
 	// 8時間ごとに時間をずらしながら実行
-	$failed_ts = array();
 	while($ts <= $end_ts){
 		// URL等の作成
 		$ripe = MakeRIPEParam($ts);
@@ -22,7 +21,7 @@ function GetRIPE($start, $end = null){
 				if(!downloadFile($ripe['url'], $ripe['gz'])){
 					// 一時的に1分戻す（$ts2）
 					$ts2 = $ts-60;
-					$ripe2 = MakeRIPEDParam($ts2);
+					$ripe2 = MakeRIPEParam($ts2);
 					// ファイルをDL
 					showLog('failed, retry: '.date('Y-m-d H:i',$ts2)." ({$ripe2['url']})");
 					if(!downloadFile($ripe2['url'], $ripe['gz'])) throw new Exception();
@@ -42,13 +41,10 @@ function GetRIPE($start, $end = null){
 				break;
 			}catch(Exception $e){
 				$failed_count++;
-				if($failed_count>=3) $failed_ts[] = $ts;
 				showLog("failed($failed_count)");
 			}
 		}
 		$ts += 60*60*8;
 	}
-	if(count($failed_ts)===0) return false;
-	else return $failed_ts;
 }
 ?>
