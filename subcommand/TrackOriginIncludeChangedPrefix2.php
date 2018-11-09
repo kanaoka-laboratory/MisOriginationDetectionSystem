@@ -175,6 +175,7 @@ function TrackOriginIncludeChangedPrefix2($date){
 				fwrite($fp, $row.PHP_EOL);
 			}
 		}
+		// v4とv6の区切り（なくてもいいかも？）
 		fwrite($fp, PHP_EOL);
 	}
 

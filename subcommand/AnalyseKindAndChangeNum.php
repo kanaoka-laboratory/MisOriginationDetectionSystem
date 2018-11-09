@@ -32,7 +32,7 @@ function AnalyseKindAndChangeNum($track_result){
 		// カンマで分割
 		$row_data = explode(',', rtrim($row));
 		// base_ip_prefixを保存してcontinue
-		if(!isset($row_data[1])){
+		if($row_data[0]!==''){
 			$base_ip_prefix = $row_data[0];
 			fwrite($fpout, $base_ip_prefix.PHP_EOL);
 			continue;

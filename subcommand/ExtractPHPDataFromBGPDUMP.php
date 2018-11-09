@@ -6,7 +6,7 @@ function ExtractPHPDataFromBGPDUMP($start, $end = null){
 	$ts_end = strtotime($end);
 
 	// 8時間ごとに時間をずらしながら実行
-	for(;$ts <= $ts_end; $ts += 60*60*8;){
+	for(;$ts <= $ts_end; $ts += 60*60*8){
 		// URL等の作成
 		$ripe = MakeRIPEParam($ts);
 		// bgpdumpファイルがない場合はエラーを表示してスキップ

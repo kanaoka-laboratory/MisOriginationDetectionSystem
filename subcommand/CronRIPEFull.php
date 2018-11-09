@@ -34,8 +34,8 @@ function CronRIPEFull(){
 	showLog('DL，bgpdump・PHPData抽出完了');
 	file_put_contents(CRON_RIPE_FULL, "$date\n");
 
-	showLog('ExactMatchによる変更抽出・IPプレフィックスの追跡実験開始');
-	TrackOriginExactChangedPrefix2($date);
+	// showLog('ExactMatchによる変更抽出・IPプレフィックスの追跡実験開始');
+	// TrackOriginExactChangedPrefix2($date);
 	showLog('IncludeMatchによる変更抽出・IPプレフィックスの追跡実験開始');
 	TrackOriginIncludeChangedPrefix2($date);
 }

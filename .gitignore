@@ -4,3 +4,4 @@
 /log/*/*
 !.gitkeep
 .DS_Store
+._.DS_Store
