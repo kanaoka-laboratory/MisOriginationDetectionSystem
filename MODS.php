@@ -1,4 +1,7 @@
 <?php
+// プログラムのカレントディレクトリを変更
+chdir(dirname(__FILE__));
+
 //==================== 引数のエラーチェック ====================//
 //------------ サブコマンドの取得 ------------//
 $subcommand = isset($argv[1])? $argv[1]: '';
@@ -29,8 +32,6 @@ if(!in_array("$subcommand.php", scandir('subcommand/'), true)){
 }
 
 //==================== 初期設定 ====================//
-// プログラムのカレントディレクトリを変更
-chdir(dirname(__FILE__));
 // 設定ファイル読み込み
 require_once('config.php');
 // 関数などの読み込み
@@ -118,7 +119,7 @@ catch(Exception $e){
 	case 'ExtractPHPDataFromBGPDUMP':
 		echo'  START : 取得を開始する日時 ex. 2018-01-01_00:00',PHP_EOL,
 			'  END   : 取得を終了する日時',PHP_EOL,
-			'          省略した場合はSTARTの1分後',PHP_EOL;
+			'          省略した場合はSTARTと同時刻',PHP_EOL;
 		break;
 	//------------ TrackOriginExactChangedPrefix, TrackOriginIncludeChangedPrefix ------------//
 	case 'TrackOriginExactChangedPrefix':

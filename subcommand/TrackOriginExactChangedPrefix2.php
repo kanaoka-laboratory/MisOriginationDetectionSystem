@@ -125,8 +125,8 @@ function TrackOriginExactChangedPrefix2($date){
 			}
 			fwrite($fp, $row.PHP_EOL);
 		}
-		// v4とv6の区切り（不要じゃね？）
-		// fwrite($fp, PHP_EOL);
+		// v4とv6の区切り（なくてもいいかも？）
+		fwrite($fp, PHP_EOL);
 	}
 
 	// クローズ
