@@ -91,9 +91,11 @@ function MakeRIPEUpdateParam($ts){
 	$url = "http://data.ris.ripe.net/rrc00/$Y_m/updates.$Ymd_Hi.gz";
 	$file_gz = RIPE_UPDATE_GZ."$Y_m/updates.$Ymd_Hi.gz";
 	$file_bgpdump = RIPE_UPDATE_BGPDUMP."$Y_m/$Ymd_Hi.bgpdump.txt";
+	$file_analyse_advertisement = ANALYSE_ADVERTISEMENT_UPDATE_RESULT."$Y_m/$Ymd_Hi.csv";
 	// DL先ディレクトリがなかった場合は作成
 	if(!is_dir(RIPE_UPDATE_GZ.$Y_m)) mkdir(RIPE_UPDATE_GZ.$Y_m);
 	if(!is_dir(RIPE_UPDATE_BGPDUMP.$Y_m)) mkdir(RIPE_UPDATE_BGPDUMP.$Y_m);
-	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump);
+	if(!is_dir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m)) mkdir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m);
+	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'analyse_advertisement'=>$file_analyse_advertisement);
 }
 ?>

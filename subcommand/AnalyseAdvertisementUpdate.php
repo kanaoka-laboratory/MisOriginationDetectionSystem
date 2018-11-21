@@ -60,8 +60,8 @@ function AnalyseAdvertisementUpdate($start, $end = null){
 	
 		//------------ 変更検出 ------------//
 		// ファイルをオープンしてタイトル行の出力
-		$fp = fopen(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.date('Ymd.Hi', $ts).'.csv', 'w');
-		fwrite($fp, 'ip_prefix,asn,type,conflict_ip_prefix'.PHP_EOL);
+		$fp = fopen($ripe['analyse_advertisement'], 'w');
+		fwrite($fp, 'ip_prefix,asn,type,conflict_ip_prefix,conflict_asn'.PHP_EOL);
 		// advertisementを以下の5種類に分類する
 		// 1. フルルートに重複するIPプレフィックスがなく，全く新しい経路の追加
 		// 2. フルルートに全く同じIPプレフィックスが存在し，OriginASが同じである（KeepAlive？）
@@ -69,23 +69,25 @@ function AnalyseAdvertisementUpdate($start, $end = null){
 		// 4. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが同じ（ハイジャックへの防御？）
 		// 5. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが異なる（ハイジャック？）
 		// type4,5は衝突するIPプレフィックスをconflict_ip_prefixとして保存する
+		// type3,5は衝突・一致したIPプレフィックスを所有するASの番号をconflict_asnとして保存する
 		foreach(['v4','v6'] as $ip_proto){
 			foreach($update_list[$ip_proto] as $ip_prefix => $ip_prefix_info){
 				// 
 				// フルルートに全く同じIPプレフィックスが存在する（type2 or type3）
 				if(isset($network_list[$ip_proto][$ip_prefix])){
+					$conflict_asn = implode('/', array_slice(array_keys($network_list[$ip_proto][$ip_prefix]), 2));
 					foreach(array_keys($ip_prefix_info) as $asn){
 						// フルルートに同じasnがある（type2）
 						if(isset($network_list[$ip_proto][$ip_prefix][$asn]))
-							fwrite($fp, "$ip_prefix,$asn,2,".PHP_EOL);
+							fwrite($fp, "$ip_prefix,$asn,2,,".PHP_EOL);
 						// フルルートに同じasnがない（type3）
 						else
-							fwrite($fp, "$ip_prefix,$asn,3,".PHP_EOL);
+							fwrite($fp, "$ip_prefix,$asn,3,$ip_prefix,$conflict_asn".PHP_EOL);
 					}
 				}// フルルートに全く同じIPプレフィックスが存在しない（type1 or type4 or type5）
 				else{
 					// falseならtype1，重複が見つかったらIPプレフィックスを保存（type4 or type5）
-					$conflict_ip_prefix=false;
+					$conflict=false;
 					// ネットワークアドレス，ブロードキャストアドレスを算出
 					list($network, $broadcast) = getNetworkBroadcast($ip_prefix, $ip_proto);
 					// RIPEのBGPDUMPはIPアドレスが昇順，同じIPアドレスはプレフィックス長で昇順に並んでいるのでこれを利用．
@@ -97,18 +99,19 @@ function AnalyseAdvertisementUpdate($start, $end = null){
 						// 追い越した＝重複するIPプレフィックスがなかった（type1） or IPプレフィックスの重複はあったが一致するasnがなかった（type5）
 						if($network < $fullroute_ip_prefix_info['network']){
 							foreach(array_keys($ip_prefix_info) as $asn){
-								if($conflict_ip_prefix===false)	fwrite($fp, "$ip_prefix,$asn,1,".PHP_EOL);
-								else							fwrite($fp, "$ip_prefix,$asn,5,$conflict_ip_prefix".PHP_EOL);
+								if($conflict===false)	fwrite($fp, "$ip_prefix,$asn,1,,".PHP_EOL);
+								else					fwrite($fp, "$ip_prefix,$asn,5,{$conflict['ip_prefix']},{$conflict['asn']}".PHP_EOL);
 							}
 							break;
 						}
 						// IPプレフィックスが重複している（type4 or type5）
-						$conflict_ip_prefix = $fullroute_ip_prefix;
+						$conflict = array(	'ip_prefix'=>$fullroute_ip_prefix,
+											'asn'=>implode('/', array_slice(array_keys($fullroute_ip_prefix_info), 2)) );
 						// OriginASが同じものが見つかればtype4
 						foreach(array_keys($ip_prefix_info) as $asn){
 							// OriginASが同じものが見つかった（type4）
 							if(isset($fullroute_ip_prefix_info[$asn])){
-								fwrite($fp, "$ip_prefix,$asn,4,$conflict_ip_prefix".PHP_EOL);
+								fwrite($fp, "$ip_prefix,$asn,4,{$conflict['ip_prefix']},".PHP_EOL);
 								unset($ip_prefix_info[$asn]);
 							}
 						}
@@ -121,46 +124,4 @@ function AnalyseAdvertisementUpdate($start, $end = null){
 		fclose($fp);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ?>
