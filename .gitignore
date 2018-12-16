@@ -1,6 +1,9 @@
+/data/ASCountry.sqlite3
 /data/*/*
 !/data/RIPE/*
 /data/RIPE/*/*
+!/data/ASCountry/*
+/data/ASCountry/*/*
 /log/*/*
 !.gitkeep
 .DS_Store

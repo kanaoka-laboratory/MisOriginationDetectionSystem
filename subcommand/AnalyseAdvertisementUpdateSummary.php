@@ -31,6 +31,7 @@ function AnalyseAdvertisementUpdateSummary($start, $end=null){
 		fwrite($fp_out, date('Y/m/d H:i', $ts).",{$count[1]},{$count[2]},{$count[3]},{$count[4]},{$count[5]}".PHP_EOL);
 		fclose($fp);
 	}
+	fclose($fp_out);
 	showLog('完了: '.ANALYSE_ADVERTISEMENT_UPDATE_SUMMARY.$filename);
 }
 ?>
