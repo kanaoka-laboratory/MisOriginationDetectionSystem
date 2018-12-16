@@ -39,26 +39,31 @@ function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = nu
 			// typeが5のときだけ該当する行を出力（$rowinfo[0]=ip_prefix, [1]=asn, [2]=type, [3]=conflict_ip_prefix, [4]=conflict_asn）
 			$rowinfo = explode(',', $row);
 			if((int)$rowinfo[2]===5){
-				//------------ asnの取得 ------------//
+				// 全てのconflict_typeより小さい値で初期化
+				$conflict_type = -1;
+				// MOAS等の場合のため$asn2をforeach
+				// MOAS内でconflict_typeが違う場合，値が大きい方を採用（PRIVATE_ASN < SUSPICIOUS < WHITELIST）
 				$asn1 = $rowinfo[1];
-				$asn2 = $rowinfo[4];
-				//------------ conflict_typeの決定 ------------//
-				$conflict_type = null;
-				// 少なくとも片方がプライベートAS番号
-				if((64512<=$asn1 && $asn1<=65534) || (64512<=$asn2 && $asn2<=65534))
-					$conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
-				// mainホワイトリストで照合
-				elseif($whitelist_name==='main')
-					;	// 未作成
-				// ファイル形式のホワイトリストで照合
-				else
-					$conflict_type = CheckAsnAgainstWhitelistFromFile($whitelist, $asn1, $asn2);
+				foreach(explode('/', $rowinfo[4]) as $asn2){
+					//------------ conflict_typeの決定 ------------//
+					// 少なくとも片方がプライベートAS番号
+					if((64512<=$asn1 && $asn1<=65534) || (64512<=$asn2 && $asn2<=65534))
+						$new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
+					// mainホワイトリストで照合
+					elseif($whitelist_name==='main'){
+						$new_conflict_type=-1;	// 未作成
+					}
+					// ファイル形式のホワイトリストで照合
+					else
+						$new_conflict_type = CheckAsnAgainstWhitelistFromFile($whitelist, $asn1, $asn2);
+					// $new_conflict_typeがそれまでの$conflict_typeよりも大きかった場合値を更新
+					if($new_conflict_type > $conflict_type) $conflict_type = $new_conflict_type;
+				}
 				//------------ 出力 ------------//
 				fwrite($fp_out, "$row,$conflict_type".PHP_EOL);
 			}
 		}
 	}
-	var_dump($whitelist);
 }
 
 function CreateWhitelistFromFile($whitelist_name){
