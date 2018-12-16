@@ -6,22 +6,24 @@ chdir(dirname(__FILE__));
 //------------ サブコマンドの取得 ------------//
 $subcommand = isset($argv[1])? $argv[1]: '';
 $subcommand_usage = array(
-	'GetRIPE'							=> 'GetRIPE <START> [<END>]                          : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
-	'GetRIPEUpdate'						=> 'GetRIPEUpdate <START> [<END>]                    : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
-	'ExtractPHPDataFromBGPDUMP'			=> 'ExtractPHPDataFromBGPDUMP <START> [<END>]        : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
-	'TrackOriginExactChangedPrefix'		=> 'TrackOriginExactChangedPrefix <START> <END>      : OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを追跡する',
-	'TrackOriginExactChangedPrefix2'	=> 'TrackOriginExactChangedPrefix2 <DATE>            : OriginASの変更をExactMatchで検出し，1週間前からのOriginASの変遷を追跡する',
-	'TrackOriginIncludeChangedPrefix'	=> 'TrackOriginIncludeChangedPrefix <START> <END>    : OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを追跡する',
-	'TrackOriginIncludeChangedPrefix2'	=> 'TrackOriginIncludeChangedPrefix2 <DATE>          : OriginASの変更をIncludeMatchで検出し，1週間前からのOriginASの変遷を追跡する',
-	'AnalyseKindAndChangeNum'			=> 'AnalyseKindAndChangeNum <FILENAME>               : OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する',
-	'TrackAndAnalyseKindAndChangeNum'	=> 'TrackAndAnalyseKindAndChangeNum <START> <END>    : TrackOrigin(Exact|Include)ChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
-	'GroupChangesOfOriginAS'			=> 'GroupChangesOfOriginAS <FILENAME>                : OriginASに変更のあったIPプレフィックスの追跡結果を，OriginASの変更の仕方により細分化する',
-	'AnalyseAdvertisementUpdate'		=> 'AnalyseAdvertisementUpdate <START> [<END>]       : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
-	'AnalyseAdvertisementUpdateSummary'	=> 'AnalyseAdvertisementUpdateSummary <START> [<END>]: AnalyseAdvertisementUpdateの結果から，各時刻毎の各typeの数を集計する（Excelでのグラフ作成用）',
-	'CronRIPEFull'						=> 'CronRIPEFull                                     : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
-	'CronRIPEUpdate'					=> 'CronRIPEUpdate                                   : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
-	'CronASCountry'						=> 'CronASCountry                                    : Cron実行用（ASと国の紐付け）',
-	'help'								=> 'help                                             : このドキュメントを表示',
+	'GetRIPE'								=> 'GetRIPE <START> [<END>]                                          : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
+	'GetRIPEUpdate'							=> 'GetRIPEUpdate <START> [<END>]                                    : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
+	'ExtractPHPDataFromBGPDUMP'				=> 'ExtractPHPDataFromBGPDUMP <START> [<END>]                        : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
+	'TrackOriginExactChangedPrefix'			=> 'TrackOriginExactChangedPrefix <START> <END>                      : OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを追跡する',
+	'TrackOriginExactChangedPrefix2'		=> 'TrackOriginExactChangedPrefix2 <DATE>                            : OriginASの変更をExactMatchで検出し，1週間前からのOriginASの変遷を追跡する',
+	'TrackOriginIncludeChangedPrefix'		=> 'TrackOriginIncludeChangedPrefix <START> <END>                    : OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを追跡する',
+	'TrackOriginIncludeChangedPrefix2'		=> 'TrackOriginIncludeChangedPrefix2 <DATE>                          : OriginASの変更をIncludeMatchで検出し，1週間前からのOriginASの変遷を追跡する',
+	'AnalyseKindAndChangeNum'				=> 'AnalyseKindAndChangeNum <FILENAME>                               : OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する',
+	'TrackAndAnalyseKindAndChangeNum'		=> 'TrackAndAnalyseKindAndChangeNum <START> <END>                    : TrackOrigin(Exact|Include)ChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
+	'GroupChangesOfOriginAS'				=> 'GroupChangesOfOriginAS <FILENAME>                                : OriginASに変更のあったIPプレフィックスの追跡結果を，OriginASの変更の仕方により細分化する',
+	'AnalyseAdvertisementUpdate'			=> 'AnalyseAdvertisementUpdate <START> [<END>]                       : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
+	'AnalyseAdvertisementUpdateSummary'		=> 'AnalyseAdvertisementUpdateSummary <START> [<END>]                : AnalyseAdvertisementUpdateの結果から，各時刻毎の各typeの数を集計する（作図用）',
+	'FilterSuspiciousAdvertisement'			=> 'FilterSuspiciousAdvertisement <START> [<END>] [WHITELIST]        : AnalyseAdvertisementUpdateの結果のハイジャックの可能性があるものをホワイトリストを用いて分類',
+	'FilterSuspiciousAdvertisementSummary'	=> 'FilterSuspiciousAdvertisementSummary <START> [<END>] [WHITELIST] : FilterSuspiciousAdvertisementの結果から，各時刻毎の各conflict_typeの数を集計する（作図用）',
+	'CronRIPEFull'							=> 'CronRIPEFull                                                     : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
+	'CronRIPEUpdate'						=> 'CronRIPEUpdate                                                   : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
+	'CronASCountry'							=> 'CronASCountry                                                    : Cron実行用（ASと国の紐付け）',
+	'help'									=> 'help                                                             : このドキュメントを表示',
 );
 
 // サブコマンドが存在しない
@@ -93,10 +95,12 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0], isset($option[1])?$option[1]:null);
 		break;
-	//------------ GetASCountry ------------//
-	case 'GetASCountry':
+	//------------ FilterSuspiciousAdvertisement ------------//
+	case 'FilterSuspiciousAdvertisement':
+	case 'FilterSuspiciousAdvertisementSummary':
+		if(!isset($option[0])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand(isset($option[0])? $option[0]: null);
+		$subcommand($option[0], isset($option[1])?$option[1]:null, isset($option[2])?$option[2]:null);
 		break;
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':
@@ -156,9 +160,11 @@ catch(Exception $e){
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
-	//------------ GetASCountry ------------//
-	case 'GetASCountry':
-		echo' DATE : 紐づけ情報の取得対象日',PHP_EOL;
+	case 'FilterSuspiciousAdvertisement':
+	case 'FilterSuspiciousAdvertisementSummary':
+		echo'  START      : 分析対象の日付',PHP_EOL,
+			'  END        : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL,
+			'  WHILTELIST : 利用するホワイトリスト，指定がなければmainを利用',PHP_EOL;
 		break;
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':

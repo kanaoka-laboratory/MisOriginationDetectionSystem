@@ -11,7 +11,7 @@ class mymysqli extends mysqli{
 		
 		//MySQLへ接続
 		parent::__construct(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB);
-		if($this->connect_error) exit('MySQLの接続に失敗しました：'.$this->connect_error);
+		if($this->connect_error) exit('MySQLの接続に失敗しました：'.$this->connect_error.PHP_EOL);
 
 		//文字コード指定
 		$this->set_charset('utf8mb4');

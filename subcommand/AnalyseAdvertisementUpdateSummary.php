@@ -9,8 +9,8 @@ function AnalyseAdvertisementUpdateSummary($start, $end=null){
 	$ts_end = strtotime($end);
 	
 	showLog(date('Y/m/d H:i',$ts).'〜'.date('Y/m/d H:i',$ts_end).'の各typeごとのAdvertisementの数を集計');
-	$filename = date('Ymd.Hi',$ts).'_'.date('Ymd.Hi',$ts_end).'.csv';
-	$fp_out = fopen(ANALYSE_ADVERTISEMENT_UPDATE_SUMMARY.$filename, 'w');
+	$filename = ANALYSE_ADVERTISEMENT_UPDATE_RESULT.'summary_'.date('Ymd.Hi',$ts).'_'.date('Ymd.Hi',$ts_end).'.csv';
+	$fp_out = fopen($filename, 'w');
 	// タイトル行の出力
 	fwrite($fp_out, 'date,type1,type2,type3,type4,type5'.PHP_EOL);
 	for(; $ts<=$ts_end; $ts+=60*5){
@@ -27,11 +27,10 @@ function AnalyseAdvertisementUpdateSummary($start, $end=null){
 			list($ip_prefix, $asn, $type) = explode(',', rtrim($row));
 			$count[$type]++;
 		}
-		// 結果の出力をしてファイルクローズ
-		fwrite($fp_out, date('Y/m/d H:i', $ts).",{$count[1]},{$count[2]},{$count[3]},{$count[4]},{$count[5]}".PHP_EOL);
 		fclose($fp);
+		// 結果の出力
+		fwrite($fp_out, date('Y/m/d H:i', $ts).",{$count[1]},{$count[2]},{$count[3]},{$count[4]},{$count[5]}".PHP_EOL);
 	}
 	fclose($fp_out);
-	showLog('完了: '.ANALYSE_ADVERTISEMENT_UPDATE_SUMMARY.$filename);
 }
 ?>

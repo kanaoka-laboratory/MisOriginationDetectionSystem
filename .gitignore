@@ -1,9 +1,10 @@
-/data/ASCountry.sqlite3
 /data/*/*
 !/data/RIPE/*
 /data/RIPE/*/*
 !/data/ASCountry/*
 /data/ASCountry/*/*
+!/data/FilterSuspiciousAdvertisement/*
+/data/FilterSuspiciousAdvertisement/*/*
 /log/*/*
 !.gitkeep
 .DS_Store
