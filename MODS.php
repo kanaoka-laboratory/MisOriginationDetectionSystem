@@ -18,9 +18,9 @@ $subcommand_usage = array(
 	'GroupChangesOfOriginAS'			=> 'GroupChangesOfOriginAS <FILENAME>                : OriginASに変更のあったIPプレフィックスの追跡結果を，OriginASの変更の仕方により細分化する',
 	'AnalyseAdvertisementUpdate'		=> 'AnalyseAdvertisementUpdate <START> [<END>]       : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
 	'AnalyseAdvertisementUpdateSummary'	=> 'AnalyseAdvertisementUpdateSummary <START> [<END>]: AnalyseAdvertisementUpdateの結果から，各時刻毎の各typeの数を集計する（Excelでのグラフ作成用）',
-	'GetASCountry'						=> 'GetASCountry <DATE>                              : ASと国の紐づけを取得する',
 	'CronRIPEFull'						=> 'CronRIPEFull                                     : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
 	'CronRIPEUpdate'					=> 'CronRIPEUpdate                                   : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
+	'CronASCountry'						=> 'CronASCountry                                    : Cron実行用（ASと国の紐付け）',
 	'help'								=> 'help                                             : このドキュメントを表示',
 );
 
@@ -38,6 +38,8 @@ require_once('config.php');
 // 関数などの読み込み
 foreach(glob('import/*.php') as $filename) require_once($filename);
 require_once("subcommand/$subcommand.php");
+// MySQL接続
+$mysqli = new mymysqli();
 
 //------------ サブコマンドへのオプションを取得 ------------//
 $option = array_slice($argv, 2);
@@ -99,6 +101,7 @@ try{
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':
 	case 'CronRIPEUpdate':
+	case 'CronASCountry':
 		startLogging($subcommand);
 		$subcommand();
 		break;
@@ -160,6 +163,7 @@ catch(Exception $e){
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':
 	case 'CronRIPEUpdate':
+	case 'CronASCountry':
 		break;
 	//------------ hoge ------------//
 	case 'hoge':
