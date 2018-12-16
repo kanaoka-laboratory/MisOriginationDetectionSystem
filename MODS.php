@@ -93,11 +93,6 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0], isset($option[1])?$option[1]:null);
 		break;
-	//------------ GetASCountry ------------//
-	case 'GetASCountry':
-		startLogging($subcommand);
-		$subcommand(isset($option[0])? $option[0]: null);
-		break;
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':
 	case 'CronRIPEUpdate':
@@ -155,10 +150,6 @@ catch(Exception $e){
 	case 'AnalyseAdvertisementUpdateSummary':
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
-		break;
-	//------------ GetASCountry ------------//
-	case 'GetASCountry':
-		echo' DATE : 紐づけ情報の取得対象日',PHP_EOL;
 		break;
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':

@@ -1,4 +1,3 @@
-/data/ASCountry.sqlite3
 /data/*/*
 !/data/RIPE/*
 /data/RIPE/*/*
