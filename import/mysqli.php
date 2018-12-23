@@ -24,6 +24,35 @@ class mymysqli extends mysqli{
 		}
 		return $result;
 	}
+
+	//------------ 特定の日付のASと国の紐付けデータを取得 ------------//
+	function getASCountry($ts_or_date){
+		// dateを取得
+		$ts = is_int($ts_or_date)? $ts_or_date: strtotime($ts);
+		$date = date('Y-m-d', $ts);
+		// データを格納する配列
+		$ASCountry = array();
+		// 各RIRごとに取得
+		$result = $this->query('select rir,date from ASCountryProgress');
+		while($row = $result->fetch_assoc()){
+			$rir = $row['rir'];
+			// 信憑性：$dateの日がすでに取得されているか，それともされていないからひとまず最新データを返すのか
+			$credible = $date<=$row['date'];
+			// 最新データを参照すれば良い or 過去のデータを参照する
+			if($date>=$row['date']) $query = "select asn,country,date_since,date_until from ASCountry where rir='$rir' and date_until='$date'";
+			else $query = "select asn,country,date_since,date_until from ASCountry where rir='$rir' and date_until>='$date' and date_since<='$date'";
+			// データを配列に格納していく
+			$result2 = $this->query($query);
+			while($row = $result2->fetch_assoc()){
+				$ASCountry[$row['asn']] = array(ASCOUNTRY_COUNTRY=>$row['country'], ASCOUNTRY_CREDIBLE=>$credible,
+												ASCOUNTRY_DATE_SINCE=>$row['date_since'], ASCOUNTRY_DATE_UNTIL=>$row['date_until']);
+			}
+			$result2->close();
+		}
+		$result->close();
+
+		return $ASCountry;
+	}
 }
 
 ?>
