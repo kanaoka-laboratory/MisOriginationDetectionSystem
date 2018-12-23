@@ -3,7 +3,7 @@ function CronASCountry(){
 	global $mysqli;
 	
 	// 各RIRの取得状況を参照する（取得すべきdateを$tsに保存）
-	$result = $mysqli->query('select * from ASCountryProgress');
+	$result = $mysqli->query('select rir,date from ASCountryProgress');
 	while($row = $result->fetch_assoc()) $ts[$row['rir']] = strtotime($row['date'].' +1 day');
 	$result->close();
 
