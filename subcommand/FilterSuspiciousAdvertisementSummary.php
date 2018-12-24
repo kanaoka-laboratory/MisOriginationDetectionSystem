@@ -21,6 +21,7 @@ function FilterSuspiciousAdvertisementSummary($start, $end = null, $whitelist_na
 		// ファイルオープン
 		$Y_m = date('Y.m', $ts);
 		$Ymd_Hi = date('Ymd.Hi', $ts);
+		showLog(FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/$Y_m/$Ymd_Hi.csv の読み込み");
 		$fp = fopen(FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/$Y_m/$Ymd_Hi.csv", 'r');
 		// タイトル行をスキップ
 		fgets($fp);

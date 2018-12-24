@@ -32,6 +32,7 @@ function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = nu
 		// ファイルポインタの取得
 		$Y_m = date('Y.m', $ts);
 		$Ymd_Hi = date('Ymd.Hi', $ts);
+		showLog(ANALYSE_ADVERTISEMENT_UPDATE_RESULT."$Y_m/$Ymd_Hi.csv の読み込み");
 		$fp = fopen(ANALYSE_ADVERTISEMENT_UPDATE_RESULT."$Y_m/$Ymd_Hi.csv", 'r');
 		if(!is_dir(FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/$Y_m")) mkdir(FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/$Y_m");
 		$fp_out = fopen(FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/$Y_m/$Ymd_Hi.csv", 'w');
