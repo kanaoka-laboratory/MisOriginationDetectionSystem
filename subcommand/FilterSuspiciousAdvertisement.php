@@ -2,6 +2,7 @@
 // テキスト形式のホワイトリストは FILTER_SUSPICIOUS_ADVERTISEMENT の中に hogehoge.txt の形式で保存
 // 同じディレクトリに hogehoge/ ディレクトリを作成する
 function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = null){
+	global $mysqli;
 	if($end===null) $end = $start;
 	if($whitelist_name===null) $whitelist_name = 'main';
 	// ホワイトリストが存在しない場合は終了
@@ -24,6 +25,10 @@ function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = nu
 
 	//==================== 5分毎にずらしながら実行 ====================//
 	for(; $ts<=$ts_end; $ts+=60*5){
+		// 日付が更新されたら，その日のASと国の紐付けを取得
+		if(!isset($ASCountry) || date('Hi',$ts)==='0000')
+			$ASCountry = $mysqli->getASCountry($ts);
+
 		// ファイルポインタの取得
 		$Y_m = date('Y.m', $ts);
 		$Ymd_Hi = date('Ymd.Hi', $ts);
@@ -32,35 +37,47 @@ function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = nu
 		$fp_out = fopen(FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/$Y_m/$Ymd_Hi.csv", 'w');
 		// タイトル行
 		fgets($fp);	// タイトル行読み込みスキップ
-		fwrite($fp_out, 'ip_prefix,asn,type,conflict_ip_prefix,conflict_asn,conflict_type'.PHP_EOL);	// 固定行を出力
+		fwrite($fp_out, 'adv_type,conf_type,ip_prefix,conf_ip_prefix,asn,conf_asn,asn_cc,conf_asn_cc'.PHP_EOL);	// 固定行を出力
 		// 1行ずつ読み込み
 		while(($row=fgets($fp))!==false){
-			$row = rtrim($row);
-			// typeが5のときだけ該当する行を出力（$rowinfo[0]=ip_prefix, [1]=asn, [2]=type, [3]=conflict_ip_prefix, [4]=conflict_asn）
-			$rowinfo = explode(',', $row);
-			if((int)$rowinfo[2]===5){
-				// 全てのconflict_typeより小さい値で初期化
-				$conflict_type = -1;
+			// adv_typeが3か5のときだけ該当する行を処理
+			list($ip_prefix, $asn, $adv_type, $conf_ip_prefix, $conf_asn) = explode(',', rtrim($row));
+			if($adv_type==3 || $adv_type==5){
+				// 全てのconflict_typeより小さい値（-1）で初期化
+				$conf_type = -1;
+				
+				// asn_ccを求める
+				if(64512<=$asn && $asn<=65534) $asn_cc = 'Private';
+				elseif(isset($ASCountry[$asn])) $asn_cc = $ASCountry[$asn][ASCOUNTRY_COUNTRY];
+				else $asn_cc = 'unknown';
+			
 				// MOAS等の場合のため$asn2をforeach
 				// MOAS内でconflict_typeが違う場合，値が大きい方を採用（PRIVATE_ASN < SUSPICIOUS < WHITELIST）
-				$asn1 = $rowinfo[1];
-				foreach(explode('/', $rowinfo[4]) as $asn2){
+				$conf_asn_cc = array();
+				foreach(explode('/', $conf_asn) as $asn2){
+					// conf_asn_ccを求める
+					if(64512<=$asn2 && $asn2<=65534) $asn2_cc = 'Private';
+					elseif(isset($ASCountry[$asn2])) $asn2_cc = $ASCountry[$asn2][ASCOUNTRY_COUNTRY];
+					else $asn2_cc = 'unknown';
+
 					//------------ conflict_typeの決定 ------------//
 					// 少なくとも片方がプライベートAS番号
-					if((64512<=$asn1 && $asn1<=65534) || (64512<=$asn2 && $asn2<=65534))
-						$new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
+					if($asn_cc==='Private' || $asn2_cc==='Private') $new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
+					// 同じ国（ただしどちらも国籍不明である場合は除く）
+					elseif($asn_cc===$asn2_cc && $asn_cc!=='unknown') $new_conflict_type = CONFLICT_TYPE_SAME_COUNTRY;
 					// mainホワイトリストで照合
-					elseif($whitelist_name==='main'){
-						$new_conflict_type=-1;	// 未作成
-					}
+					elseif($whitelist_name==='main') $new_conflict_type=-1;
 					// ファイル形式のホワイトリストで照合
-					else
-						$new_conflict_type = CheckAsnAgainstWhitelistFromFile($whitelist, $asn1, $asn2);
+					else $new_conflict_type = CheckAsnAgainstWhitelistFromFile($whitelist, $asn, $asn2);
+
 					// $new_conflict_typeがそれまでの$conflict_typeよりも大きかった場合値を更新
-					if($new_conflict_type > $conflict_type) $conflict_type = $new_conflict_type;
+					if($new_conflict_type > $conf_type) $conf_type = $new_conflict_type;
+					// $asn2_ccを保存
+					$conf_asn_cc[] = $asn2_cc;
 				}
+				$conf_asn_cc = implode('/', $conf_asn_cc);
 				//------------ 出力 ------------//
-				fwrite($fp_out, "$row,$conflict_type".PHP_EOL);
+				fwrite($fp_out, "$adv_type,$conf_type,$ip_prefix,$conf_ip_prefix,$asn,$conf_asn,$asn_cc,$conf_asn_cc".PHP_EOL);
 			}
 		}
 	}
