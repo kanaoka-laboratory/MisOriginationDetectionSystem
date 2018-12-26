@@ -66,6 +66,8 @@ function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = nu
 					if($asn_cc==='Private' || $asn2_cc==='Private') $new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
 					// 同じ国（ただしどちらも国籍不明である場合は除く）
 					elseif($asn_cc===$asn2_cc && $asn_cc!=='unknown') $new_conflict_type = CONFLICT_TYPE_SAME_COUNTRY;
+					// 国単位のホワイトリストでの検証（CONNECTED_BY_LAND）
+					elseif(($type = $mysqli->VerifyConflictCountryWhiteList($asn_cc, $asn2_cc))!==null) $new_conflict_type = $type;
 					// mainホワイトリストで照合
 					elseif($whitelist_name==='main') $new_conflict_type=-1;
 					// ファイル形式のホワイトリストで照合

@@ -13,10 +13,10 @@ function FilterSuspiciousAdvertisementSummary($start, $end = null, $whitelist_na
 	$filename = FILTER_SUSPICIOUS_ADVERTISEMENT."$whitelist_name/summary_".date('Ymd.Hi',$ts).'_'.date('Ymd.Hi',$ts_end).'.csv';
 	$fp_out = fopen($filename, 'w');
 	// タイトル行の出力
-	fwrite($fp_out, 'date,SUSPICIOUS,PRIVATE_ASN,NEARBY_COUNTRY,SAME_COUNTRY,US_DOD,AKAMAI'.PHP_EOL);
+	fwrite($fp_out, 'date,SUSPICIOUS,PRIVATE_ASN,CONNECTED_BY_LAND,SAME_COUNTRY,US_DOD,AKAMAI'.PHP_EOL);
 	for(; $ts<=$ts_end; $ts+=60*5){
 		// それぞれのtypeのカウント用配列
-		$count = array(	CONFLICT_TYPE_SUSPICIOUS=>0,	CONFLICT_TYPE_PRIVATE_ASN=>0,	CONFLICT_TYPE_NEARBY_COUNTRY=>0,
+		$count = array(	CONFLICT_TYPE_SUSPICIOUS=>0,	CONFLICT_TYPE_PRIVATE_ASN=>0,	CONFLICT_TYPE_CONNECTED_BY_LAND=>0,
 						CONFLICT_TYPE_SAME_COUNTRY=>0,	CONFLICT_TYPE_US_DOD=>0,		CONFLICT_TYPE_AKAMAI=>0);
 		// ファイルオープン
 		$Y_m = date('Y.m', $ts);
