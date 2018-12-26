@@ -53,6 +53,13 @@ class mymysqli extends mysqli{
 
 		return $ASCountry;
 	}
+
+	//------------ 国単位でのホワイトリストでの検証 ------------//
+	function VerifyConflictCountryWhiteList($cc, $conflict_cc){
+		$result =  $this->query("select conflict_type from ConflictCountryWhiteList where cc='$cc' and conflict_cc='$conflict_cc'");
+		if($result->num_rows===0) return null;
+		else return $result->fetch_assoc()['conflict_type'];
+	}
 }
 
 ?>
