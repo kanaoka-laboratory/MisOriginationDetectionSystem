@@ -31,7 +31,7 @@ function MakeMOASCleaningList($start, $end = null, $whitelist_name = null){
 			// 3-1（ExactMatch  なadvertisementでAS番号が相違，ホワイトリストに引っかからない）のみを対象にする
 			if($adv_type!=='5' && $adv_type!=='3') continue;
 			if($conf_type!=='1') continue;
-			$key = "$adv_type, $conf_type, $asn, $conf_asn, $asn_cc, $conf_asn_cc";
+			$key = "$asn,$conf_asn,$asn_cc,$conf_asn_cc";
 			// 重複を削除しながら$data_remove_duplicateに追加し，重複数をカウント
 			if(isset($data_filtered[$key]))
 				$data_filtered[$key]['count']++;
