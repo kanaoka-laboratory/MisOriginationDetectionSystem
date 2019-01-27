@@ -98,4 +98,31 @@ function MakeRIPEUpdateParam($ts){
 	if(!is_dir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m)) mkdir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m);
 	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'analyse_advertisement'=>$file_analyse_advertisement);
 }
+
+//==================== ディレクトリはそのまま，ファイル名の最初/最後に文字列を追加 ====================//
+// AppendStrToFilename('/hoge/piyo.txt', '_foo') => '/hoge/piyo_foo.txt' 
+function AppendStrToFilename($filename, $str){
+	// ディレクトリの場合はなにもせず返す
+	if(substr($filename, 0, -1)==='/'){
+		showLog("ディレクトリ名です：$filename");
+		return $filename;
+	}
+	// appendして返す
+	$pathinfo = pathinfo($filename);
+	if($pathinfo['dirname']==='/') $pathinfo['dirname'] = '';
+	$pathinfo['extension'] = isset($pathinfo['extension'])? '.'.$pathinfo['extension']: '';
+	return "{$pathinfo['dirname']}/{$pathinfo['filename']}$str{$pathinfo['extension']}";
+}
+// PrependStrToFilename('/hoge/piyo.txt', 'foo_') => '/hoge/foo_piyo.txt' 
+function PrependStrToFilename($filename, $str){
+	// ディレクトリの場合はなにもせず返す
+	if(substr($filename, 0, -1)==='/'){
+		showLog("ディレクトリ名です：$filename");
+		return $filename;
+	}
+	// prependして返す
+	$pathinfo = pathinfo($filename);
+	if($pathinfo['dirname']==='/') $pathinfo['dirname'] = '';
+	return "{$pathinfo['dirname']}/$str{$pathinfo['basename']}";
+}
 ?>

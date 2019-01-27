@@ -1,6 +1,6 @@
 <?php
 // プログラムのカレントディレクトリを変更
-chdir(dirname(__FILE__));
+chdir(__DIR__);
 
 //==================== 引数のエラーチェック ====================//
 //------------ サブコマンドの取得 ------------//
@@ -21,6 +21,7 @@ $subcommand_usage = array(
 	'FilterSuspiciousAdvertisement'			=> 'FilterSuspiciousAdvertisement <START> [<END>] [<WHITELIST>]        : AnalyseAdvertisementUpdateの結果のハイジャックの可能性があるものをホワイトリストを用いて分類',
 	'FilterSuspiciousAdvertisementSummary'	=> 'FilterSuspiciousAdvertisementSummary <START> [<END>] [<WHITELIST>] : FilterSuspiciousAdvertisementの結果から，各時刻毎の各conflict_typeの数を集計する（作図用）',
 	'MakeMOASCleaningList'					=> 'MakeMOASCleaningList <START> [<END>] [<WHITELIST>]                 : FilterSuspiciousAdvertisementの結果から重複を削除し国の情報を付与',
+	'AddWhoisToMOASCleaningList'			=> 'AddWhoisToMOASCleaningList <FILENAME>                              : MakeMOASCleaningListの結果にwhoisの情報を付与（whoisのfulltextはDBに保存）',
 	'CronRIPEFull'							=> 'CronRIPEFull                                                       : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
 	'CronRIPEUpdate'						=> 'CronRIPEUpdate                                                     : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
 	'CronASCountry'							=> 'CronASCountry                                                      : Cron実行用（ASと国の紐付け）',
@@ -104,16 +105,16 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0], isset($option[1])?$option[1]:null, isset($option[2])?$option[2]:null);
 		break;
+	//------------ AddWhoisToMOASCleaningList ------------//
+	case 'AddWhoisToMOASCleaningList':
+		if(!isset($option[0])) throw new Exception();
+		startLogging($subcommand);
+		$subcommand($option[0]);
+		break;
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':
 	case 'CronRIPEUpdate':
 	case 'CronASCountry':
-		startLogging($subcommand);
-		$subcommand();
-		break;
-	//------------ hoge ------------//
-	case 'hoge':
-		if(!isset($option[0])) throw new Exception();
 		startLogging($subcommand);
 		$subcommand();
 		break;
@@ -162,12 +163,17 @@ catch(Exception $e){
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
+	//------------ FilterSuspiciousAdvertisement ------------//
 	case 'FilterSuspiciousAdvertisement':
 	case 'FilterSuspiciousAdvertisementSummary':
 	case 'MakeMOASCleaningList':
 		echo'  START      : 分析対象の日付',PHP_EOL,
 			'  END        : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL,
 			'  WHILTELIST : 利用するホワイトリスト，指定がなければmainを利用',PHP_EOL;
+		break;
+	//------------ AddWhoisToMOASCleaningList ------------//
+	case 'AddWhoisToMOASCleaningList':
+		echo'  FILENAME : 分析対象のファイルパス',PHP_EOL;
 		break;
 	//------------ Cron* ------------//
 	case 'CronRIPEFull':
