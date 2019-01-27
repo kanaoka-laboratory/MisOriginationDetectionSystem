@@ -38,7 +38,7 @@ function QueryWhoisAS($asn){
 	if(preg_match('/^(AS|as)?([0-9]+)$/', $asn, $m)) $asn = (int)$m[2];
 	else return null;
 	// 不正なAS番号
-	if($asn<=0 || (64512<=$asn && $asn<=65564)) return null;
+	if($asn<=0 || (64512<=$asn && $asn<=65534)) return null;
 
 	// mysql利用準備
 	global $mysqli;
@@ -50,22 +50,21 @@ function QueryWhoisAS($asn){
 	
 	// 連続アクセスでBANされないように連続アクセスの場合は遅延処理（5秒以上間隔を開ける）
 	static $last_request_time = 0;
-	if(($delay = time()-$last_request_time)<5) sleep($delay);
+	if(($delay = $last_request_time+5-time())>0) sleep($delay);
+	$last_request_time = time();
 	
 	// 最大3回で結果が得られなければwhois情報が存在しない（誤rir->arin->正rir）
 	$whois_not_exists = false;
-	$name = 'undefined';	// 初期値
-	$sign = array(	'apnic'  =>array('index'=>'org-name', 'index_fallback'=>'as-name'),
-					'arin'   =>array('index'=>'OrgName',  'index_fallback'=>'OrgName'),
-					'ripe'   =>array('index'=>'org-name', 'index_fallback'=>'as-name'),
-					'lacnic' =>array('index'=>'owner',    'index_fallback'=>'owner'),
-					'afrinic'=>array('index'=>'org-name', 'index_fallback'=>'as-name') );
+	$name = 'NoName';	// 初期値
 	for($i=0; $i<3; $i++){
 		//------------ リクエストを送り，結果（fulltext）を取得 ------------//
 		$fulltext = '';
 		$fp = fsockopen("whois.$rir.net", 43);
-		fwrite($fp, "as$asn".PHP_EOL);
+		// arinとそれ以外ではクエリの方法が違う
+		if($rir==='arin') fwrite($fp, "a $asn".PHP_EOL);	
+		else fwrite($fp, "as$asn".PHP_EOL);
 		while(!feof($fp)) $fulltext .= fgets($fp, 128);
+		$fulltext = str_replace(array("\r\n","\r"),"\n", $fulltext);
 		fclose($fp);
 		//------------ fulltextからnameを取得 ------------//
 		switch($rir) {
@@ -83,8 +82,8 @@ function QueryWhoisAS($asn){
 			}
 		// arin
 		case 'arin':
-			// whoisが存在しないasなら "No match found for + a $asn."，そうでないならOrgNameにRIR名が帰ってくる
-			if(preg_match("/^No match found for + a $asn\.$/m", $fulltext, $m)){
+			// whoisが存在しないasなら "No match found for a $asn."，そうでないならOrgNameにRIR名が帰ってくる
+			if(preg_match("/^No match found for( \+)? a $asn\.$/m", $fulltext, $m)){
 				$whois_not_exists = true;
 				break 2;
 			}// 結果が帰ってきた
@@ -114,7 +113,7 @@ function QueryWhoisAS($asn){
 		case 'lacnic':
 			// "% (RIR) resource: whois.(rir).net" この記述でどこのrirかわかる
 			// 上記の記述なし：どこのRIRかわからないのでarinに投げる
-			if(!preg_match('/^% (APNIC|ARIN|RIPENCC|LACNIC|AFRINIC) resource: whois.(apnic|arin|ripe|lacnic|afrinic).net$/m', $fulltext, $m)){
+			if(!preg_match('/^% (APNIC|ARIN|RIPENCC|LACNIC|AFRINIC) resource: whois\.(apnic|arin|ripe|lacnic|afrinic)\.net$/m', $fulltext, $m)){
 				$rir = 'arin';
 				break;
 			}
@@ -141,6 +140,8 @@ function QueryWhoisAS($asn){
 			elseif(preg_match('/^as-name:\s+?([^\s].*?)$/m', $fulltext, $m)) $name = $m[1];
 			break 2;
 		}
+		// ここが実行されるときはwhois情報が得られなかったとき
+		$whois_not_exists = true;
 	}
 	
 	// 該当するwhois情報が得られなかった
