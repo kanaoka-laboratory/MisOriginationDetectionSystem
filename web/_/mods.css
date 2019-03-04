@@ -1,0 +1,12 @@
+@charset "UTF-8";
+
+
+table, th, td{
+	border: solid 1px black;
+}
+table tr:not(:first-child){
+	background-color: pink;
+}
+table tr.whitelist{
+	background-color: silver;
+}
