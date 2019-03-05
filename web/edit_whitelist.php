@@ -33,9 +33,9 @@ $json['two_way'] = $two_way;
 if($whitelist>=10){
 	$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($whitelist,$asn,$conf_asn)";
 	if($two_way) $query.=",($whitelist,$conf_asn,$asn)";
-}// ホワイトリストから削除
+}// ホワイトリストの無効化
 else{
-	$query = "delete from ConflictAsnWhiteList where asn=$asn and conflict_asn=$conf_asn";
+	$query = "update ConflictAsnWhiteList set disabled=current_timestamp where asn=$asn and conflict_asn=$conf_asn";
 	if($two_way) $query.=" or asn=$conf_asn and conflict_asn=$asn";
 }
 $json['query'] = $query;

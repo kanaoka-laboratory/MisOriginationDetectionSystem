@@ -36,21 +36,26 @@ $ts = isset($_GET['date'])? strtotime($_GET['date']): time();
 <form method="get" action=""><input type="text" name="date" placeholder="2019-01-01"><input type="submit" value="　GO　"></form>
 <!-- main-body -->
 <div class="main-body">
+<p>	whitelist：<br>
+	10: その他<br>
+	11: US_DoD<br>
+	12: Akamai</p>
 <?php
 // 1日（1440分）
 $Y_m = date('Y.m',$ts);
 $ts_max = $ts+60*60*24;
 for (; $ts<$ts_max; $ts+=5*60){
 	$Ymd_Hi = date('Ymd.Hi',$ts);
-	$filename = FILTER_SUSPICIOUS_ADVERTISEMENT."okada1101/$Y_m/$Ymd_Hi.csv";
+	$filename = FILTER_SUSPICIOUS_ADVERTISEMENT."main/$Y_m/$Ymd_Hi.csv";
 	// ファイルが存在しない場合スキップ
 	if(!is_file($filename)) continue;
 
 	// テーブルの表示
 	echo'<table><caption>'.date('H:i', $ts).'</caption>';
-	// 1行ずつ読み込み
 	$fp = fopen($filename, 'r');
-	echo '<tr><th>whitelist<th>'.str_replace(',', '<th>', fgets($fp));
+	// タイトル行
+	echo '<tr><th>whitelist<th>'.str_replace(',', '<th>', fgets($fp)).'<th>詳細';
+	// 1行ずつ読み込み
 	while (($row = fgetcsv($fp))!==false){
 		// 行を分割
 		list($adv_type, $conf_type, $ip_prefix, $conf_ip_prefix, $asn, $conf_asn, $asn_cc, $conf_asn_cc) = $row;
@@ -65,7 +70,6 @@ for (; $ts<$ts_max; $ts+=5*60){
 		}else{
 			continue;
 		}
-
 		// ハイジャック判定orホワイトリスティングされているイベントだけを表示
 		echo '<td>'.implode('<td>', $row);
 	}
