@@ -60,6 +60,18 @@ class mymysqli extends mysqli{
 		if($result->num_rows===0) return null;
 		else return $result->fetch_assoc()['conflict_type'];
 	}
+
+	//------------ 国単位でのホワイトリストでの検証 ------------//
+	function VerifyConflictAsnWhiteList($asn, $conflict_asn){
+		$result =  $this->query("select conflict_type from ConflictAsnWhiteList where asn=$asn and conflict_asn=$conflict_asn and disabled is null");
+		if($result->num_rows>0) return $result->fetch_assoc()['conflict_type'];
+		$result =  $this->query("select conflict_type from ConflictAsnWhiteList where asn=$asn and conflict_asn=0 and disabled is null");
+		if($result->num_rows>0) return $result->fetch_assoc()['conflict_type'];
+		$result =  $this->query("select conflict_type from ConflictAsnWhiteList where asn=0 and conflict_asn=$conflict_asn and disabled is null");
+		if($result->num_rows>0) return $result->fetch_assoc()['conflict_type'];
+
+		return null;
+	}
 }
 
 ?>
