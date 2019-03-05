@@ -54,23 +54,21 @@ for (; $ts<$ts_max; $ts+=5*60){
 	echo'<table><caption>'.date('H:i', $ts).'</caption>';
 	$fp = fopen($filename, 'r');
 	// タイトル行
-	echo '<tr><th>whitelist<th>'.str_replace(',', '<th>', fgets($fp)).'<th>詳細';
+	echo '<tr><th>whitelist<th>'.str_replace(',', '<th>', fgets($fp));
 	// 1行ずつ読み込み
 	while (($row = fgetcsv($fp))!==false){
 		// 行を分割
 		list($adv_type, $conf_type, $ip_prefix, $conf_ip_prefix, $asn, $conf_asn, $asn_cc, $conf_asn_cc) = $row;
-		if($row[1]==='1'){
-			if($result = $mysqli->query("select conflict_type from ConflictAsnWhiteList where asn='$asn' and conflict_asn='$conf_asn'")->fetch_assoc())
-				echo "<tr class='whitelist'><td><input type='number' min='10' max='100' value='{$result['conflict_type']}' disabled><input type='checkbox' data-asn='$asn' data-conf_asn='$conf_asn' checked>";
-			else
-				echo "<tr><td><input type='number' min=10 max=100 value=10><input type='checkbox' data-asn='$asn' data-conf_asn='$conf_asn'>";
-
-		}elseif($row[1]>=10){
-			echo "<tr class='whitelist'><td><input type='number' min='10' max='100' value='$conf_type' disabled><input type='checkbox' data-asn='$asn' data-conf_asn='$conf_asn' checked>";
-		}else{
-			continue;
-		}
-		// ハイジャック判定orホワイトリスティングされているイベントだけを表示
+		// ハイジャックの可能性がないものはスキップ
+		if($row[1]!=='1') continue;
+		$conflict_type = $mysqli->VerifyConflictAsnWhiteList($asn, $conf_asn);
+		// ハイジャック
+		if($conflict_type===null)
+			echo "<tr><td><input type='number' min=10 max=100 value=10><input type='checkbox' data-asn='$asn' data-conf_asn='$conf_asn'>";
+		// ホワイトリストに登録されている
+		else
+			echo "<tr class='whitelist'><td><input type='number' min='10' max='100' value='$conflict_type' disabled><input type='checkbox' data-asn='$asn' data-conf_asn='$conf_asn' checked>";
+		// CSVのデータをテーブルにして表示
 		echo '<td>'.implode('<td>', $row);
 	}
 	fclose($fp);

@@ -48,7 +48,7 @@ if(isset($_GET['file'])){
 	if(is_file($filename)){
 		$fp = fopen($filename, 'r');
 		// タイトル行
-		echo '<table><tr><th>whitelist<th>'.implode('<th>', fgetcsv($fp)).'<th>詳細';
+		echo '<table><tr><th>whitelist<th>'.implode('<th>', fgetcsv($fp));
 		// 1行ずつ読み込み
 		while (($row = fgetcsv($fp))!==false){
 			// 行を分割
