@@ -1,6 +1,8 @@
 <?php
-// DBの利用準備
-require_once('mysqli.php');
+// 設定ファイル読み込み
+require_once('../config.php');
+// 関数などの読み込み
+foreach(glob('../import/*.php') as $filename) require_once($filename);
 $mysqli = new mymysqli();
 ?>
 

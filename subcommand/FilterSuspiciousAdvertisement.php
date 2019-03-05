@@ -69,7 +69,7 @@ function FilterSuspiciousAdvertisement($start, $end = null, $whitelist_name = nu
 					// 国単位のホワイトリストでの検証（CONNECTED_BY_LAND）
 					elseif(($type = $mysqli->VerifyConflictCountryWhiteList($asn_cc, $asn2_cc))!==null) $new_conflict_type = $type;
 					// mainホワイトリストで照合
-					elseif($whitelist_name==='main') $new_conflict_type=-1;
+					elseif($whitelist_name==='main') $new_conflict_type=CONFLICT_TYPE_SUSPICIOUS;
 					// ファイル形式のホワイトリストで照合
 					else $new_conflict_type = CheckAsnAgainstWhitelistFromFile($whitelist, $asn, $asn2);
 
