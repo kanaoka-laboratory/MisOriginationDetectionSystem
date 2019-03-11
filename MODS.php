@@ -6,9 +6,9 @@ chdir(__DIR__);
 //------------ サブコマンドの取得 ------------//
 $subcommand = isset($argv[1])? $argv[1]: '';
 $subcommand_usage = array(
-	'GetRIPE'								=> 'GetRIPE <START> [<END>]                                            : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
-	'GetRIPEUpdate'							=> 'GetRIPEUpdate <START> [<END>]                                      : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
-	'ExtractPHPDataFromBGPDUMP'				=> 'ExtractPHPDataFromBGPDUMP <START> [<END>]                          : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
+	'GetBGPFullRoute'						=> 'GetBGPFullRoute <RC> <START> [<END>]                                            : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
+	'GetBGPUpdate'							=> 'GetBGPUpdate <RC> <START> [<END>]                                      : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
+	'ExtractPHPDataFromBGPScanner'			=> 'ExtractPHPDataFromBGPScanner <RC> <START> [<END>]                          : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
 	'TrackOriginExactChangedPrefix'			=> 'TrackOriginExactChangedPrefix <START> <END>                        : OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを追跡する',
 	'TrackOriginExactChangedPrefix2'		=> 'TrackOriginExactChangedPrefix2 <DATE>                              : OriginASの変更をExactMatchで検出し，1週間前からのOriginASの変遷を追跡する',
 	'TrackOriginIncludeChangedPrefix'		=> 'TrackOriginIncludeChangedPrefix <START> <END>                      : OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを追跡する',
@@ -56,12 +56,12 @@ try{
 	// 各サブコマンドごとに引数の前処理をして実行
 	switch($subcommand){
 	//------------ GetRIPE, GetRIPEUpdate ------------//
-	case 'GetRIPE':
-	case 'GetRIPEUpdate':
-	case 'ExtractPHPDataFromBGPDUMP':
-		if(!isset($option[0])) throw new Exception();
+	case 'GetBGPFullRoute':
+	case 'GetBGPUpdate':
+	case 'ExtractPHPDataFromBGPScanner':
+		if(!isset($option[1])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0], isset($option[1])?$option[1]:null);
+		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
 	//------------ TrackOriginExactChangedPrefix, TrackOriginIncludeChangedPrefix ------------//
 	case 'TrackOriginExactChangedPrefix':
@@ -128,7 +128,7 @@ catch(Exception $e){
 	//------------ GetRIPE, GetRIPEUpdate ------------//
 	case 'GetRIPE':
 	case 'GetRIPEUpdate':
-	case 'ExtractPHPDataFromBGPDUMP':
+	case 'ExtractPHPDataFromBGPScanner':
 		echo'  START : 取得を開始する日時 ex. 2018-01-01_00:00',PHP_EOL,
 			'  END   : 取得を終了する日時',PHP_EOL,
 			'          省略した場合はSTARTと同時刻',PHP_EOL;

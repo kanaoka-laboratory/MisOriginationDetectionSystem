@@ -2,10 +2,12 @@
 
 Usage: php MODS.php <subcommand> <options>
 
-MySQLのDBが必要．
+MySQLのDBとbgpscannerコマンドが必要．
 DBが不要なコマンドを動かしたいだけの場合はMODS.phpの"$mysqli = new mymysqli();"をコメントアウトすれば一応動く．
 下部に各テーブル情報が記載してある．
 接続用のユーザ名・パスワードはconfig.phpにて記述．
+bgpscannerコマンドは，Ubuntuなら以下のリンクからlibisocoreとbgpscannerのdebファイルをDLしてaptでインストール
+https://isolario.it/web_content/php/site_content/tools.php
 
 //------------ ファイル・ディレクトリ構成 ------------//
 /
