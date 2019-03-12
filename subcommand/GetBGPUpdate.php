@@ -1,6 +1,6 @@
 <?php
-function GetRIPEUpdate($start, $end = null){
-	if(!is_dir(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
+function GetBGPUpdate($rc, $start, $end = null){
+	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	if($end===null) $end = $start;
 	// 開始・終了時間を設定
 	$ts = strtotime($start);

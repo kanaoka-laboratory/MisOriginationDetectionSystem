@@ -1,6 +1,6 @@
 <?php
 function GetBGPFullRoute($rc, $start, $end = null){
-	if(!is_dir(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
+	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	if($end===null) $end = $start;
 	// 開始・終了時間を設定
 	$ts = strtotime($start);
@@ -22,7 +22,7 @@ function GetBGPFullRoute($rc, $start, $end = null){
 				if(!downloadFile($filename['fullroute_url'], $filename['fullroute_gz'])){
 					// 一時的に1分戻す（$ts2）
 					$ts2 = $ts-60;
-					$filename2 = MakeFilenames($ts2);
+					$filename2 = MakeFilenames($rc, $ts2);
 					// ファイルをDL
 					showLog('failed, retry: '.date('Y-m-d H:i',$ts2)." ({$filename2['fullroute_url']})");
 					if(!downloadFile($filename2['fullroute_url'], $filename['fullroute_gz'])) throw new Exception();

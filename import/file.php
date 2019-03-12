@@ -55,12 +55,13 @@ function MakeFilenames($rc, $ts){
 		$filename['update_url']    = "http://archive.routeviews.org/bgpdata/$Y_m/UPDATES/updates.$Ymd_Hi.gz";
 	}
 	
+	//------------ BGP Route ------------//
 	// FullRouteGZ
 	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_GZ.$Y;
 	$filename['fullroute_gz'] = "$dir/bview.$Ymd_Hi.gz";
 	// FullRouteBGPScanner
 	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_BGPSCANNER.$Y;
-	$filename['fullroute_bgpscanner'] = "$dir/bview.$Ymd_Hi.gz";
+	$filename['fullroute_bgpscanner'] = "$dir/$Ymd_Hi.bgpscanner.txt";
 	// FullRoutePHPData
 	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_PHPDATA.$Y;
 	$filename['fullroute_phpdata'] = "$dir/$Ymd_Hi.dat";
@@ -69,7 +70,17 @@ function MakeFilenames($rc, $ts){
 	$filename['update_gz'] = "$dir/updates.$Ymd_Hi.gz";
 	// UpdateBGPScanner
 	$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_BGPSCANNER.$Y_m;
-	$filename['update_bgpscanner'] = "$dir/$Ymd_Hi.bgpscanner.txt";
+	$filename['update_bgpscanner'] = "$dir/$Ymd_Hi.bgpscaner.txt";
+
+	//------------ TrackOriginChangedPrefix ------------//
+	// Exact
+	$dir = DIR_RC[$rc].TRACK_ORIGIN_CHANGED_PREFIX;
+	$dirs[] = $dir.$Y;
+	$filename['track_exact_change'] =  "$dir/TrackOriginExactChangedPrefix_$Ymd_Hi.csv";
+	$filename['track_exact_change2'] = "$dir$Y/TrackOriginExactChangedPrefix2_$Ymd_Hi.csv";
+	$filename['track_include_change'] =  "$dir/TrackOriginIncludeChangedPrefix_$Ymd_Hi.csv";
+	$filename['track_include_change2'] = "$dir$Y/TrackOriginIncludeChangedPrefix2_$Ymd_Hi.csv";
+
 	
 	// $file_analyse_advertisement = ANALYSE_ADVERTISEMENT_UPDATE_RESULT."$Y_m/$Ymd_Hi.csv";
 	// if(!is_dir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m)) mkdir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m);

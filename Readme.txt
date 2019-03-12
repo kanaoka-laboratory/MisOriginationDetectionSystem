@@ -8,6 +8,8 @@ DBが不要なコマンドを動かしたいだけの場合はMODS.phpの"$mysql
 接続用のユーザ名・パスワードはconfig.phpにて記述．
 bgpscannerコマンドは，Ubuntuなら以下のリンクからlibisocoreとbgpscannerのdebファイルをDLしてaptでインストール
 https://isolario.it/web_content/php/site_content/tools.php
+Macの場合は以下のリンクのインストールを参照
+https://nstgt.hatenablog.jp/entry/2019/02/19/235555
 
 //------------ ファイル・ディレクトリ構成 ------------//
 /
@@ -87,7 +89,7 @@ INSERT INTO `ASCountryProgress` (`id`, `rir`, `date`) VALUES
 }
 
 
-//------------ GroupChangesOfOriginASのタイプ ------------//
+//------------ AnalyseKindAndChangeNumのタイプ ------------//
 Type0: 変化無し（特記事項なし）
 	ex. A A A A A A A A
 	ex. A/B A/B A/B A/B 
