@@ -38,7 +38,7 @@ function AnalyseAdvertisement($rc, $start, $end = null){
 		// Advertisementのみを取得し，(OriginAS,AS番号)の重複を削除
 		$update_list = array('v4'=>array(), 'v6'=>array());
 		foreach(file($filename['update_bgpscanner'], FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES) as $row){
-			// データを分割（最終行は使わないのでrtrimしてない）
+			// データを分割（IGNORE_NEW_LINESで読み込んでるのでrtrim不要）
 			$exploded_row = explode('|', $row);
 			// advertisement以外は無視
 			if($exploded_row[0]!=='+') continue;
