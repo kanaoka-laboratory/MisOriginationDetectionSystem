@@ -131,3 +131,5 @@ data_kind_num ≧3->(5)			 (4)
 3. フルルートに全く同じIPプレフィックスが存在し，OriginASが異なる											// ARTEMISにおける Exact prefix hijacking
 4. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが同じ（ハイジャックへの防御？）
 5. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが異なる（ハイジャック？）		// ARTEMISにおける Sub-prefix hijacking
+
+//------------ FilterSuspiciousUpdates ------------//

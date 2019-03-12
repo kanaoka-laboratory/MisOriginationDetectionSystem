@@ -15,9 +15,9 @@ $subcommand_usage = array(
 	'TrackOriginIncludeChangedPrefix2'		=> 'TrackOriginIncludeChangedPrefix2 <RC> <DATE>                       : OriginASの変更をIncludeMatchで検出し，1週間前からのOriginASの変遷を追跡する',
 	'AnalyseKindAndChangeNum'				=> 'AnalyseKindAndChangeNum <FILENAME>                                 : OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する',
 	'TrackAndAnalyseKindAndChangeNum'		=> 'TrackAndAnalyseKindAndChangeNum <RC> <START|DATE> [<END>]          : TrackOriginChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
-	'AnalyseAdvertisementUpdate'			=> 'AnalyseAdvertisementUpdate <START> [<END>]                         : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
-	'AnalyseAdvertisementUpdateSummary'		=> 'AnalyseAdvertisementUpdateSummary <START> [<END>]                  : AnalyseAdvertisementUpdateの結果から，各時刻毎の各typeの数を集計する（作図用）',
-	'FilterSuspiciousAdvertisement'			=> 'FilterSuspiciousAdvertisement <START> [<END>] [<WHITELIST>]        : AnalyseAdvertisementUpdateの結果のハイジャックの可能性があるものをホワイトリストを用いて分類',
+	'AnalyseAdvertisement'					=> 'AnalyseAdvertisement <RC> <START> [<END>]                          : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
+	'AnalyseAdvertisementSummary'			=> 'AnalyseAdvertisementSummary <RC> <START> [<END>]                   : AnalyseAdvertisementの結果から，各時刻毎の各typeの数を集計する（作図用）',
+	'FilterSuspiciousAdvertisement'			=> 'FilterSuspiciousAdvertisement <START> [<END>] [<WHITELIST>]        : AnalyseAdvertisementの結果のハイジャックの可能性があるものをホワイトリストを用いて分類',
 	'FilterSuspiciousAdvertisementSummary'	=> 'FilterSuspiciousAdvertisementSummary <START> [<END>] [<WHITELIST>] : FilterSuspiciousAdvertisementの結果から，各時刻毎の各conflict_typeの数を集計する（作図用）',
 	'MakeMOASCleaningList'					=> 'MakeMOASCleaningList <START> [<END>] [<WHITELIST>]                 : FilterSuspiciousAdvertisementの結果から重複を削除し国の情報を付与',
 	'AddWhoisToMOASCleaningList'			=> 'AddWhoisToMOASCleaningList <FILENAME>                              : MakeMOASCleaningListの結果にwhoisの情報を付与（whoisのfulltextはDBに保存）',
@@ -89,11 +89,11 @@ try{
 		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
 	//------------ AnalyseAdvertisementUpdate(Summary) ------------//
-	case 'AnalyseAdvertisementUpdate':
-	case 'AnalyseAdvertisementUpdateSummary':
-		if(!isset($option[0])) throw new Exception();
+	case 'AnalyseAdvertisement':
+	case 'AnalyseAdvertisementSummary':
+		if(!isset($option[1])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0], isset($option[1])?$option[1]:null);
+		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
 	//------------ FilterSuspiciousAdvertisement ------------//
 	case 'FilterSuspiciousAdvertisement':
@@ -158,8 +158,8 @@ catch(Exception $e){
 			'  END        : 変更検出を行う期間の終了日時指定がなければ過去方向に1週間追跡する',PHP_EOL;
 		break;
 	//------------ AnalyseAdvertisementUpdate(Summary) ------------//
-	case 'AnalyseAdvertisementUpdate':
-	case 'AnalyseAdvertisementUpdateSummary':
+	case 'AnalyseAdvertisement':
+	case 'AnalyseAdvertisementSummary':
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
