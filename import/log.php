@@ -13,8 +13,9 @@ function startLogging($subcommand){
 	$log__start_time = time();
 
 	// ログの出力先を指定
-	$date = date('Ymd_His');
-	$log__fp = fopen("log/$subcommand/$date.log", 'w');
+	if(substr($subcommand,0,4)==='Cron')$date = date("Ymd");
+	else								$date = date('Ymd_His');
+	$log__fp = fopen("log/$subcommand/$date.log", 'a');
 }
 //------------ ログを表示する ------------//
 // フォーマットは以下の通り

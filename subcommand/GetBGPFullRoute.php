@@ -10,6 +10,7 @@ function GetBGPFullRoute($rc, $start, $end = null){
 	showLog($rc.'から'.date('Y-m-d H:i', $ts).'〜'.date('Y-m-d H:i', $end_ts).'のフルルート情報を取得します');
 
 	// 8時間ごとに時間をずらしながら実行
+	$error = array();
 	while($ts <= $end_ts){
 		// URL等の作成
 		$filename = MakeFilenames($rc, $ts);
@@ -43,9 +44,13 @@ function GetBGPFullRoute($rc, $start, $end = null){
 			}catch(Exception $e){
 				$failed_count++;
 				showLog("failed($failed_count)");
+				if($failed_count===3) $error[] = date('Y-m-d H:i', $ts);
 			}
 		}
 		$ts += 60*60*8;
 	}
+
+	// 失敗した日付のリストを返す
+	return $error;
 }
 ?>

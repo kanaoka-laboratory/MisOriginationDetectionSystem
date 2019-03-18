@@ -21,7 +21,7 @@ $subcommand_usage = array(
 	'FilterSuspiciousAdvertisementSummary'	=> 'FilterSuspiciousAdvertisementSummary <START> [<END>] [<WHITELIST>] : FilterSuspiciousAdvertisementの結果から，各時刻毎の各conflict_typeの数を集計する（作図用）',
 	'MakeMOASCleaningList'					=> 'MakeMOASCleaningList <START> [<END>] [<WHITELIST>]                 : FilterSuspiciousAdvertisementの結果から重複を削除し国の情報を付与',
 	'AddWhoisToMOASCleaningList'			=> 'AddWhoisToMOASCleaningList <FILENAME>                              : MakeMOASCleaningListの結果にwhoisの情報を付与（whoisのfulltextはDBに保存）',
-	'CronRIPEFull'							=> 'CronRIPEFull                                                       : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
+	'CronBGPFullRoute'						=> 'CronBGPFullRoute <RC>                                              : Cron実行用（8時間おきのフルルートを取得して変更検出）',
 	'CronRIPEUpdate'						=> 'CronRIPEUpdate                                                     : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
 	'CronASCountry'							=> 'CronASCountry                                                      : Cron実行用（ASと国の紐付け）',
 	'help'									=> 'help                                                               : このドキュメントを表示',
@@ -109,9 +109,16 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0]);
 		break;
-	//------------ Cron* ------------//
-	case 'CronRIPEFull':
-	case 'CronRIPEUpdate':
+
+	//------------ CronBGPFullRoute/Update ------------//
+	case 'CronBGPFullRoute':
+	case 'CronBGPUpdate':
+		if(!isset($option[0])) throw new Exception();
+		startLogging($subcommand);
+		$subcommand($option[0]);
+		break;
+
+	//------------ CronASCountry ------------//
 	case 'CronASCountry':
 		startLogging($subcommand);
 		$subcommand();
@@ -175,11 +182,16 @@ catch(Exception $e){
 	case 'AddWhoisToMOASCleaningList':
 		echo'  FILENAME : 分析対象のファイルパス',PHP_EOL;
 		break;
-	//------------ Cron* ------------//
-	case 'CronRIPEFull':
-	case 'CronRIPEUpdate':
+	//------------ CronBGPFullRoute/Update ------------//
+	case 'CronBGPFullRoute':
+	case 'CronBGPUpdate':
+		echo'  RC         : 取得するルートコレクタ',PHP_EOL;
+		break;
+
+	//------------ CronASCountry ------------//
 	case 'CronASCountry':
 		break;
+
 	//------------ hoge ------------//
 	case 'hoge':
 		echo'  OPTION1 : その説明',PHP_EOL;

@@ -10,6 +10,7 @@ function GetBGPUpdate($rc, $start, $end = null){
 	showLog($rc.'から'.date('Y-m-d H:i', $ts).'〜'.date('Y-m-d H:i', $end_ts).'の更新経路情報を取得します');
 
 	// 5分ごとに時間をずらしながら実行
+	$error = array();
 	while($ts <= $end_ts){
 		// URL等の作成
 		$filename = MakeFilenames($rc, $ts);
@@ -31,9 +32,13 @@ function GetBGPUpdate($rc, $start, $end = null){
 			}catch(Exception $e){
 				$failed_count++;
 				showLog("failed($failed_count)");
+				if($failed_count===3) $error[] = date('Y-m-d H:i', $ts);
 			}
 		}
 		$ts += 60*5;
 	}
+
+	// 失敗した日付のリストを返す
+	return $error;
 }
 ?>

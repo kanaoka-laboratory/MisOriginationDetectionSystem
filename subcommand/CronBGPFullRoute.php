@@ -1,42 +1,41 @@
 <?php
-require_once('subcommand/GetRIPE.php');
-// require_once('subcommand/TrackOriginExactChangedPrefix2.php');
-require_once('subcommand/TrackOriginIncludeChangedPrefix2.php');
+require_once('subcommand/GetBGPFullRoute.php');
 
-function CronRIPEFull(){
-	// CRON_RIPE_FULLを読み込み
-	list($date, $processing) = explode("\n", file_get_contents(CRON_RIPE_FULL));
-	// 他プロセスで処理中の場合終了
-	if($processing!=='') showLog('他プロセスで実行中', true);
-	
+function CronBGPFullRoute($rc){
+	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
+	global $mysqli;
+
+	// 現状を取得
+	$cron = $mysqli->query("select id,value,failed_count>=max_failed_count as last_exec,processing from CronProgress ".
+																			"where cron='BGPFullRoute' and name='$rc'")->fetch_assoc();
+	if($cron===null) showLog("指定されたルートコレクタは実行できません", true);
+	if($cron["processing"]==true) showLog("他プロセスで実行中", true);
+
 	// DLするファイルのタイムスタンプ作成，$dateを更新
-	$ts = strtotime("$date +8 hours");
-	$date = date('Y-m-d H:i', $ts);
-	// 日本標準時の時差を考慮して，tsが今より未来なら終了
-	if($ts > strtotime('now -9 hours')) showLog('まだ次のフルルートがダンプされる時間ではありません', true);
-	// 404チェック
-	$ripe = MakeRIPEParam($ts);
-	fclose(fopen($ripe['url'], 'r', false, stream_context_create(array('http'=>array('ignore_errors'=>true)))));
-	if(substr($http_response_header[0], 9, 3)==='404') showLog('ダウンロードできるファイルがありません（404 Not Found）', true);
+	$date = date("Y-m-d H:i", strtotime($cron["value"]." +8 hours"));
+	// $dateが今より未来なら終了
+	if(time() < strtotime("$date UTC")) showLog("$rc: まだ次のフルルートがダンプされる時間ではありません", true);
 
-	// CRON_RIPE_FULLの2行目を実行中に変更
-	showLog('実行開始');
-	file_put_contents(CRON_RIPE_FULL, 'processing', FILE_APPEND);
+	// 実行中フラグを立てる
+	showLog("$rc: 実行開始");
+	$mysqli->query("update CronProgress set processing=true where id={$cron["id"]}");
 
 	// DL，bgpdump・PHPDataの抽出
-	GetRIPE($date);
-	// 展開に失敗したら終了．この段階ではprocessingの状態なので手動で直すまでcronの処理は止まる
-	if(!is_file($ripe['phpdata']))
-		showLog('DLまたはbgpdump・PHPDataの抽出に失敗', true);
-
+	$error = GetBGPFullRoute($rc, $date);
 	
-	// CRON_RIPE_FULLの1行目の時間を更新，2行目を空に
-	showLog('DL，bgpdump・PHPData抽出完了');
-	file_put_contents(CRON_RIPE_FULL, "$date\n");
-
-	// showLog('ExactMatchによる変更抽出・IPプレフィックスの追跡実験開始');
-	// TrackOriginExactChangedPrefix2($date);
-	showLog('IncludeMatchによる変更抽出・IPプレフィックスの追跡実験開始');
-	TrackOriginIncludeChangedPrefix2($date);
+	//成功
+	if(empty($error)){
+		$mysqli->query("update CronProgress set value='$date', date_success=current_timestamp(), failed_count=0, processing=false where id={$cron["id"]}");
+		showLog("$rc: DL，bgpdump・PHPData抽出完了");
+	}// 失敗
+	elseif($cron["last_exec"]==false){
+		$mysqli->query("update CronProgress set failed_count=failed_count+1, processing=false where id={$cron["id"]}");
+		showLog("$rc: 失敗：{$error[0]}");
+	}// 失敗（失敗が続いたためスキップする）
+	else{
+		$mysqli->query("update CronProgress set value='$date', failed_count=0, processing=false where id={$cron["id"]}");
+		showLog("$rc: 失敗：{$error[0]}");
+		showLog("$rc: 複数回失敗したため $date をスキップします");
+	}
 }
 ?>
