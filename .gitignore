@@ -1,10 +1,4 @@
-/data/*/*
-!/data/RIPE/*
-/data/RIPE/*/*
-!/data/ASCountry/*
-/data/ASCountry/*/*
-!/data/FilterSuspiciousAdvertisement/*
-/data/FilterSuspiciousAdvertisement/*/*
+/data/*/*/*
 /log/*/*
 !.gitkeep
 .DS_Store

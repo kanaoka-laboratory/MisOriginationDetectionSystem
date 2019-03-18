@@ -1,4 +1,43 @@
 <?php
+//==================== bgpscanner形式のテキストファイルの情報を配列に格納する（フルルート用） ====================//
+// filename: 読み込むbgpscanner形式のテキストファイル
+// 戻り値: network_list: 格納先の配列（参照渡し）
+function getFullRouteFromBGPScanner($filename){
+	//------------ ファイルの存在確認 ------------//
+	if(!is_file($filename)) showLog('getFullRouteFromBgpscanner: ファイルが存在しません: '.$filename);
+
+	//------------ 代入先を初期化 ------------//
+	$network_list = array('v4'=>array(), 'v6'=>array());
+
+	//------------ ファイルの読み込み ------------//
+	$fp = fopen($filename, 'r');
+	while(($row = fgets($fp)) !== false){
+		//------------ 行の読み込み ------------//
+		// 1行にまとまったデータを分割
+		// list($null1, $ip_prefix, $as_path, $null2, $origin_attr, $null3, $null4, $null5, $null6, $ts, $null7)
+		// // 日付を再フォーマット		
+		// $datetime = date('Y-m-d H:i:s', $datetime);
+		list($null1, $ip_prefix, $as_path, $null2) = explode('|', $row, 4);
+		// $ip_protoの検出
+		$ip_proto = strpos($ip_prefix, ':')===false? 'v4': 'v6';
+		// $network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
+		if(!isset($network_list[$ip_proto][$ip_prefix])){
+			list($network, $broadcast) = getNetworkBroadcast($ip_prefix, $ip_proto);
+			if($broadcast===null) continue;
+			$network_list[$ip_proto][$ip_prefix] = array('network'=>$network, 'broadcast'=>$broadcast);
+		}
+		// すべてのOriginASを$network_listに追加
+		$as_path_list = explode(' ', $as_path);
+		foreach(explode(',', str_replace(array('{','}'), '', end($as_path_list))) as $origin_as){
+			$network_list[$ip_proto][$ip_prefix][$origin_as] = true;
+		}
+	}
+	fclose($fp);
+	
+	//------------ 取得した$network_listを返す ------------//
+	return $network_list;
+}
+
 //==================== IPプレフィックスのネットワーク・ブロードキャストアドレスを返す ====================//
 // 返り値：array($network, $broadcast);
 function getNetworkBroadcast($ip_prefix, $ip_proto = null){

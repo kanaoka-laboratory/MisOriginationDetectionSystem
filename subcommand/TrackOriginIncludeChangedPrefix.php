@@ -1,29 +1,29 @@
 <?php
-function TrackOriginIncludeChangedPrefix($start, $end){
+function TrackOriginIncludeChangedPrefix($rc, $start, $end){
 	// 引数チェック
-	$start_ts = strtotime($start);
+	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
+	$start_ts = $ts = strtotime($start);
 	$end_ts = strtotime($end);
 	if($start_ts>$end_ts) showLog('終了日時が開始日時より前です', true);
 
 	//==================== 基準時データ読み込み ====================//
 	// ファイル名を作成
-	$ts = $start_ts;
-	$filename = RIPE_FULL_BGPDUMP.date('Ymd.Hi', $ts).'.bgpdump.txt';
+	$filename = MakeFilenames($rc, $ts);
 	// ファイルの存在確認
-	if(!is_file($filename))	showLog("bgpdumpファイルが存在しません: $filename", true);
+	if(!is_file($filename['fullroute_phpdata'])) showLog("PHPDataファイルが存在しません: {$filename['fullroute_phpdata']}", true);
 	// 読み込み
-	showLog("$filename の読み込み");
-	$prev_network_list = getFullRouteFromBgpdump($filename);
+	showLog("{$filename['fullroute_phpdata']} の読み込み");
+	$prev_network_list = unserialize(file_get_contents($filename['fullroute_phpdata']));
 
 	//==================== 基準時の次のデータ読み込み ====================//
-	// ファイル名を作成
 	$ts += 60*60*8;
-	$filename = RIPE_FULL_BGPDUMP.date('Ymd.Hi', $ts).'.bgpdump.txt';
+	// ファイル名を作成
+	$filename = MakeFilenames($rc, $ts);
 	// ファイルの存在確認
-	if(!is_file($filename))	showLog("bgpdumpファイルが存在しません: $filename", true);
+	if(!is_file($filename['fullroute_phpdata'])) showLog("PHPDataファイルが存在しません: {$filename['fullroute_phpdata']}", true);
 	// 読み込み
-	showLog("$filename の読み込み");
-	$next_network_list = getFullRouteFromBgpdump($filename);
+	showLog("{$filename['fullroute_phpdata']} の読み込み");
+	$next_network_list = unserialize(file_get_contents($filename['fullroute_phpdata']));
 
 	//==================== 変更抽出 ====================//
 	// RIPEのBGPDUMPはIPアドレスが昇順，同じIPアドレスはプレフィックス長で昇順に並んでいるのでこれを利用．
@@ -106,13 +106,12 @@ function TrackOriginIncludeChangedPrefix($start, $end){
 	//==================== 追いかける ====================//
 	for($ts += 60*60*8; $ts < $end_ts; $ts += 60*60*8){
 		// ファイル名を作成
-		$filename = RIPE_FULL_BGPDUMP.date('Ymd.Hi', $ts).'.bgpdump.txt';
+		$filename = MakeFilenames($rc, $ts);
 		// ファイルの存在確認
-		if(!is_file($filename))	showLog("bgpdumpファイルが存在しません: $filename", true);		
-		
-		//------------ ファイルの読み込み ------------//
-		showLog("$filename の読み込み");
-		$network_list = getFullRouteFromBgpdump($filename);
+		if(!is_file($filename['fullroute_phpdata'])) showLog("PHPDataファイルが存在しません: {$filename['fullroute_phpdata']}", true);
+		// 読み込み
+		showLog("{$filename['fullroute_phpdata']} の読み込み");
+		$network_list = unserialize(file_get_contents($filename['fullroute_phpdata']));
 		
 		//------------ IncludeMatchによるフィルタリング ------------//
 		foreach(['v4','v6'] as $ip_proto){
@@ -145,15 +144,11 @@ function TrackOriginIncludeChangedPrefix($start, $end){
 	}
 
 	//==================== 結果の出力 ====================//
-	// 出力ファイル名を作成
-	$filebasename = TRACK_PREFIX_RESULT . 'TrackOriginIncludeChangedPrefix_' . date('Ymd_Hi', $start_ts) . '-' . date('Ymd_Hi', $end_ts);
-	if(is_file("$filebasename.csv")){
-		for($i=2; is_file("$filebasename($i).csv"); $i++){ /* Enpty */ }
-		$filebasename = "$filebasename($i)";
-	}
 	// 結果の出力
-	showLog("結果の出力: $filebasename.csv");
-	$fp = fopen("$filebasename.csv", 'w');
+	$filename = MakeFilenames($rc, $start_ts);
+	$filename['track_include_change'] = AppendStrToFilename($filename['track_include_change'], '_'.date('Ymd.Hi', $end_ts));
+	showLog("結果の出力: {$filename['track_include_change']}");
+	$fp = fopen($filename['track_include_change'], 'w');
 
 	// ヘッダ
 	$row = 'base_ip_prefix,ip_prefix';
@@ -173,13 +168,12 @@ function TrackOriginIncludeChangedPrefix($start, $end){
 				fwrite($fp, $row.PHP_EOL);
 			}
 		}
-		fwrite($fp, PHP_EOL);
 	}
 
 	// クローズ
 	fclose($fp);
 
 	// 結果ファイルのファイル名を返す
-	return "$filebasename.csv";
+	return $filename['track_include_change'];
 }
 ?>

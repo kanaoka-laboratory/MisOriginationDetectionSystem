@@ -14,8 +14,8 @@ $mysqli = new mymysqli();
 echo '開始'.PHP_EOL;
 //==================== ここから ====================//
 
-echo "GetWhois({$argv[1]})".PHP_EOL;
-GetWhois($argv[1]);
+$network_list = getFullRouteFromBgpdump($argv[1]);
+file_put_contents($argv[2], serialize($network_list));
 
 
 

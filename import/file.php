@@ -36,69 +36,67 @@ function downloadFile($url, $filename){
 	return empty($error);
 }
 
-//==================== bgpdump形式のテキストファイルの情報を配列に格納する（フルルート用） ====================//
-// filename: 読み込むbgpdump形式のテキストファイル
-// 戻り値: network_list: 格納先の配列（参照渡し）
-function getFullRouteFromBgpdump($filename){
-	//------------ ファイルの存在確認 ------------//
-	// if(!is_file($filename)) showLog('getFullRouteFromBgpdump: ファイルが存在しません: '.$filename);
-
-	//------------ 代入先を初期化 ------------//
-	$network_list = array('v4'=>array(), 'v6'=>array());
-
-	//------------ ファイルの読み込み ------------//
-	$fp = fopen($filename, 'r');
-	while(($row = fgets($fp)) !== false){
-		//------------ 行の読み込み ------------//
-		// 1行にまとまったデータを分割
-		list($protocol, $datetime, $type, $null1, $null2, $ip_prefix, $as_path, $origin_attr) = explode('|', rtrim($row));
-		// 日付を再フォーマット		
-		$datetime = date('Y-m-d H:i:s', strtotime($datetime));
-		// $ip_protoの検出
-		$ip_proto = strpos($ip_prefix, ':')===false? 'v4': 'v6';
-		// $network_listに[$ip_proto][$ip_prefix]を作成してネットワークアドレス・ブロードキャストアドレスを登録
-		if(!isset($network_list[$ip_proto][$ip_prefix])){
-			list($network, $broadcast) = getNetworkBroadcast($ip_prefix, $ip_proto);
-			if($broadcast===null) continue;
-			$network_list[$ip_proto][$ip_prefix] = array('network'=>$network, 'broadcast'=>$broadcast);
-		}
-		// すべてのOriginASを$network_listに追加
-		$as_path_list = explode(' ', $as_path);
-		foreach(explode(',', str_replace(array('{','}'), '', end($as_path_list))) as $origin_as){
-			$network_list[$ip_proto][$ip_prefix][$origin_as] = true;
-		}
-	}
-	fclose($fp);
-	
-	//------------ 取得した$network_listを返す ------------//
-	return $network_list;
-}
-
 //==================== タイムスタンプから，RIPEからのダウンロード等に必要なパラメタ作成する ====================//
-function MakeRIPEParam($ts){
-	$Ymd_Hi = date('Ymd.Hi', $ts);
-	$url = "http://data.ris.ripe.net/rrc00/".date('Y.m', $ts)."/bview.$Ymd_Hi.gz";
-	$file_gz = RIPE_FULL_GZ."bview.$Ymd_Hi.gz";
-	$file_bgpdump = RIPE_FULL_BGPDUMP."$Ymd_Hi.bgpdump.txt";
-	$file_phpdata = RIPE_FULL_PHPDATA."$Ymd_Hi.dat";
-	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'phpdata'=>$file_phpdata);
-}
-
-//==================== タイムスタンプから，RIPEからのダウンロード等に必要なパラメタ作成する ====================//
-function MakeRIPEUpdateParam($ts){
+// rc: ルートコレクタ
+// ts: タイムスタンプ（）
+function MakeFilenames($rc, $ts){
+	if(!is_dir(DIR_RC[$rc])) return null;
+	$Y = date('Y', $ts);
 	$Y_m = date('Y.m', $ts);
 	$Ymd_Hi = date('Ymd.Hi', $ts);
-	$url = "http://data.ris.ripe.net/rrc00/$Y_m/updates.$Ymd_Hi.gz";
-	$file_gz = RIPE_UPDATE_GZ."$Y_m/updates.$Ymd_Hi.gz";
-	$file_bgpdump = RIPE_UPDATE_BGPDUMP."$Y_m/$Ymd_Hi.bgpdump.txt";
-	$file_analyse_advertisement = ANALYSE_ADVERTISEMENT_UPDATE_RESULT."$Y_m/$Ymd_Hi.csv";
-	// DL先ディレクトリがなかった場合は作成
-	if(!is_dir(RIPE_UPDATE_GZ.$Y_m)) mkdir(RIPE_UPDATE_GZ.$Y_m);
-	if(!is_dir(RIPE_UPDATE_BGPDUMP.$Y_m)) mkdir(RIPE_UPDATE_BGPDUMP.$Y_m);
-	if(!is_dir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m)) mkdir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m);
-	return array('url'=>$url, 'gz'=>$file_gz, 'bgpdump'=>$file_bgpdump, 'analyse_advertisement'=>$file_analyse_advertisement);
-}
 
+	$filename = array();
+	// url
+	if($rc==='ripe_rc00'){
+		$filename['fullroute_url'] = "http://data.ris.ripe.net/rrc00/$Y_m/bview.$Ymd_Hi.gz";
+		$filename['update_url']    = "http://data.ris.ripe.net/rrc00/$Y_m/updates.$Ymd_Hi.gz";
+	}elseif($rc === 'routeview_oregon'){
+		$filename['fullroute_url'] = "http://archive.routeviews.org/bgpdata/$Y_m/RIBS/rib.$Ymd_Hi.gz";
+		$filename['update_url']    = "http://archive.routeviews.org/bgpdata/$Y_m/UPDATES/updates.$Ymd_Hi.gz";
+	}
+	
+	//------------ BGP Route ------------//
+	// FullRouteGZ
+	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_GZ.$Y;
+	$filename['fullroute_gz'] = "$dir/bview.$Ymd_Hi.gz";
+	// FullRouteBGPScanner
+	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_BGPSCANNER.$Y;
+	$filename['fullroute_bgpscanner'] = "$dir/$Ymd_Hi.bgpscanner.txt";
+	// FullRoutePHPData
+	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_PHPDATA.$Y;
+	$filename['fullroute_phpdata'] = "$dir/$Ymd_Hi.dat";
+	// UpadteGZ
+	$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_GZ.$Y_m;
+	$filename['update_gz'] = "$dir/updates.$Ymd_Hi.gz";
+	// UpdateBGPScanner
+	$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_BGPSCANNER.$Y_m;
+	$filename['update_bgpscanner'] = "$dir/$Ymd_Hi.bgpscaner.txt";
+
+	//------------ TrackOriginChangedPrefix ------------//
+	// Exact
+	$dir = DIR_RC[$rc].TRACK_ORIGIN_CHANGED_PREFIX;
+	$dirs[] = $dir.$Y;
+	$filename['track_exact_change'] =  $dir."TrackOriginExactChangedPrefix_$Ymd_Hi.csv";
+	$filename['track_exact_change2'] = $dir."$Y/TrackOriginExactChangedPrefix2_$Ymd_Hi.csv";
+	$filename['track_include_change'] =  $dir."TrackOriginIncludeChangedPrefix_$Ymd_Hi.csv";
+	$filename['track_include_change2'] = $dir."$Y/TrackOriginIncludeChangedPrefix2_$Ymd_Hi.csv";
+	
+	//------------ AnalyseAdvertisement ------------//
+	$dir = DIR_RC[$rc].ANALYSE_ADVERTISEMENT;
+	$dirs[] = $dir.$Y_m;
+	$filename['analyse_advertisement'] = $dir."$Y_m/$Ymd_Hi.csv";
+	$filename['analyse_advertisement_summary'] = $dir."summary_$Ymd_Hi.csv";
+
+	
+	// $file_analyse_advertisement = ANALYSE_ADVERTISEMENT_UPDATE_RESULT."$Y_m/$Ymd_Hi.csv";
+	// if(!is_dir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m)) mkdir(ANALYSE_ADVERTISEMENT_UPDATE_RESULT.$Y_m);
+
+	// ディレクトリの作成
+	foreach ($dirs as $dir){ if(!is_dir($dir)) mkdir($dir); }
+	
+	return $filename;
+}
+	
 //==================== ディレクトリはそのまま，ファイル名の最初/最後に文字列を追加 ====================//
 // AppendStrToFilename('/hoge/piyo.txt', '_foo') => '/hoge/piyo_foo.txt' 
 function AppendStrToFilename($filename, $str){

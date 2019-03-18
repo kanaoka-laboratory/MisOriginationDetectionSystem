@@ -6,24 +6,23 @@ chdir(__DIR__);
 //------------ サブコマンドの取得 ------------//
 $subcommand = isset($argv[1])? $argv[1]: '';
 $subcommand_usage = array(
-	'GetRIPE'								=> 'GetRIPE <START> [<END>]                                            : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
-	'GetRIPEUpdate'							=> 'GetRIPEUpdate <START> [<END>]                                      : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
-	'ExtractPHPDataFromBGPDUMP'				=> 'ExtractPHPDataFromBGPDUMP <START> [<END>]                          : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
-	'TrackOriginExactChangedPrefix'			=> 'TrackOriginExactChangedPrefix <START> <END>                        : OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを追跡する',
-	'TrackOriginExactChangedPrefix2'		=> 'TrackOriginExactChangedPrefix2 <DATE>                              : OriginASの変更をExactMatchで検出し，1週間前からのOriginASの変遷を追跡する',
-	'TrackOriginIncludeChangedPrefix'		=> 'TrackOriginIncludeChangedPrefix <START> <END>                      : OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを追跡する',
-	'TrackOriginIncludeChangedPrefix2'		=> 'TrackOriginIncludeChangedPrefix2 <DATE>                            : OriginASの変更をIncludeMatchで検出し，1週間前からのOriginASの変遷を追跡する',
+	'GetBGPFullRoute'						=> 'GetBGPFullRoute <RC> <START> [<END>]                               : RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する',
+	'GetBGPUpdate'							=> 'GetBGPUpdate <RC> <START> [<END>]                                  : RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する',
+	'ExtractPHPDataFromBGPScanner'			=> 'ExtractPHPDataFromBGPScanner <RC> <START> [<END>]                  : BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する',
+	'TrackOriginExactChangedPrefix'			=> 'TrackOriginExactChangedPrefix <RC> <START> <END>                   : OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを指定期間追跡する',
+	'TrackOriginExactChangedPrefix2'		=> 'TrackOriginExactChangedPrefix2 <RC> <DATE>                         : OriginASの変更をExactMatchで検出し，1週間前からのOriginASの変遷を追跡する',
+	'TrackOriginIncludeChangedPrefix'		=> 'TrackOriginIncludeChangedPrefix <RC> <START> <END>                 : OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを指定期間追跡する',
+	'TrackOriginIncludeChangedPrefix2'		=> 'TrackOriginIncludeChangedPrefix2 <RC> <DATE>                       : OriginASの変更をIncludeMatchで検出し，1週間前からのOriginASの変遷を追跡する',
 	'AnalyseKindAndChangeNum'				=> 'AnalyseKindAndChangeNum <FILENAME>                                 : OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する',
-	'TrackAndAnalyseKindAndChangeNum'		=> 'TrackAndAnalyseKindAndChangeNum <START> <END>                      : TrackOrigin(Exact|Include)ChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
-	'GroupChangesOfOriginAS'				=> 'GroupChangesOfOriginAS <FILENAME>                                  : OriginASに変更のあったIPプレフィックスの追跡結果を，OriginASの変更の仕方により細分化する',
-	'AnalyseAdvertisementUpdate'			=> 'AnalyseAdvertisementUpdate <START> [<END>]                         : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
-	'AnalyseAdvertisementUpdateSummary'		=> 'AnalyseAdvertisementUpdateSummary <START> [<END>]                  : AnalyseAdvertisementUpdateの結果から，各時刻毎の各typeの数を集計する（作図用）',
-	'FilterSuspiciousAdvertisement'			=> 'FilterSuspiciousAdvertisement <START> [<END>] [<WHITELIST>]        : AnalyseAdvertisementUpdateの結果のハイジャックの可能性があるものをホワイトリストを用いて分類',
+	'TrackAndAnalyseKindAndChangeNum'		=> 'TrackAndAnalyseKindAndChangeNum <RC> <START|DATE> [<END>]          : TrackOriginChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
+	'AnalyseAdvertisement'					=> 'AnalyseAdvertisement <RC> <START> [<END>]                          : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
+	'AnalyseAdvertisementSummary'			=> 'AnalyseAdvertisementSummary <RC> <START> [<END>]                   : AnalyseAdvertisementの結果から，各時刻毎の各typeの数を集計する（作図用）',
+	'FilterSuspiciousAdvertisement'			=> 'FilterSuspiciousAdvertisement <START> [<END>] [<WHITELIST>]        : AnalyseAdvertisementの結果のハイジャックの可能性があるものをホワイトリストを用いて分類',
 	'FilterSuspiciousAdvertisementSummary'	=> 'FilterSuspiciousAdvertisementSummary <START> [<END>] [<WHITELIST>] : FilterSuspiciousAdvertisementの結果から，各時刻毎の各conflict_typeの数を集計する（作図用）',
 	'MakeMOASCleaningList'					=> 'MakeMOASCleaningList <START> [<END>] [<WHITELIST>]                 : FilterSuspiciousAdvertisementの結果から重複を削除し国の情報を付与',
 	'AddWhoisToMOASCleaningList'			=> 'AddWhoisToMOASCleaningList <FILENAME>                              : MakeMOASCleaningListの結果にwhoisの情報を付与（whoisのfulltextはDBに保存）',
-	'CronRIPEFull'							=> 'CronRIPEFull                                                       : Cron実行用（8時間おきのフルルートを取得して変更検出，過去方向に1週間追跡）',
-	'CronRIPEUpdate'						=> 'CronRIPEUpdate                                                     : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
+	'CronBGPFullRoute'						=> 'CronBGPFullRoute <RC>                                              : Cron実行用（8時間おきのフルルートを取得して変更検出）',
+	'CronBGPUpdate'							=> 'CronBGPUpdate <RC>                                                 : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
 	'CronASCountry'							=> 'CronASCountry                                                      : Cron実行用（ASと国の紐付け）',
 	'help'									=> 'help                                                               : このドキュメントを表示',
 );
@@ -56,30 +55,29 @@ try{
 	// 各サブコマンドごとに引数の前処理をして実行
 	switch($subcommand){
 	//------------ GetRIPE, GetRIPEUpdate ------------//
-	case 'GetRIPE':
-	case 'GetRIPEUpdate':
-	case 'ExtractPHPDataFromBGPDUMP':
-		if(!isset($option[0])) throw new Exception();
+	case 'GetBGPFullRoute':
+	case 'GetBGPUpdate':
+	case 'ExtractPHPDataFromBGPScanner':
+		if(!isset($option[1])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0], isset($option[1])?$option[1]:null);
+		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
 	//------------ TrackOriginExactChangedPrefix, TrackOriginIncludeChangedPrefix ------------//
 	case 'TrackOriginExactChangedPrefix':
 	case 'TrackOriginIncludeChangedPrefix':
-		if(!isset($option[1])) throw new Exception();
+		if(!isset($option[2])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0], $option[1]);
+		$subcommand($option[0], $option[1], $option[2]);
 		break;
 	//------------ TrackOriginExactChangedPrefix2, TrackOriginIncludeChangedPrefix2 ------------//
 	case 'TrackOriginExactChangedPrefix2':
 	case 'TrackOriginIncludeChangedPrefix2':
-		if(!isset($option[0])) throw new Exception();
+		if(!isset($option[1])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0]);
+		$subcommand($option[0], $option[1]);
 		break;
-	//------------ AnalyseKindAndChangeNum, GroupChangesOfOriginAS ------------//
+	//------------ AnalyseKindAndChangeNum ------------//
 	case 'AnalyseKindAndChangeNum':
-	case 'GroupChangesOfOriginAS':
 		if(!isset($option[0])) throw new Exception();
 		startLogging($subcommand);
 		$subcommand($option[0]);
@@ -88,14 +86,14 @@ try{
 	case 'TrackAndAnalyseKindAndChangeNum':
 		if(!isset($option[1])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0], $option[1]);
+		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
 	//------------ AnalyseAdvertisementUpdate(Summary) ------------//
-	case 'AnalyseAdvertisementUpdate':
-	case 'AnalyseAdvertisementUpdateSummary':
-		if(!isset($option[0])) throw new Exception();
+	case 'AnalyseAdvertisement':
+	case 'AnalyseAdvertisementSummary':
+		if(!isset($option[1])) throw new Exception();
 		startLogging($subcommand);
-		$subcommand($option[0], isset($option[1])?$option[1]:null);
+		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
 	//------------ FilterSuspiciousAdvertisement ------------//
 	case 'FilterSuspiciousAdvertisement':
@@ -111,9 +109,16 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0]);
 		break;
-	//------------ Cron* ------------//
-	case 'CronRIPEFull':
-	case 'CronRIPEUpdate':
+
+	//------------ CronBGPFullRoute/Update ------------//
+	case 'CronBGPFullRoute':
+	case 'CronBGPUpdate':
+		if(!isset($option[0])) throw new Exception();
+		startLogging($subcommand);
+		$subcommand($option[0]);
+		break;
+
+	//------------ CronASCountry ------------//
 	case 'CronASCountry':
 		startLogging($subcommand);
 		$subcommand();
@@ -128,38 +133,40 @@ catch(Exception $e){
 	//------------ GetRIPE, GetRIPEUpdate ------------//
 	case 'GetRIPE':
 	case 'GetRIPEUpdate':
-	case 'ExtractPHPDataFromBGPDUMP':
-		echo'  START : 取得を開始する日時 ex. 2018-01-01_00:00',PHP_EOL,
+	case 'ExtractPHPDataFromBGPScanner':
+		echo'  RC    : 取得するルートコレクタ',PHP_EOL,
+			'  START : 取得を開始する日時 ex. 20180101.0000',PHP_EOL,
 			'  END   : 取得を終了する日時',PHP_EOL,
 			'          省略した場合はSTARTと同時刻',PHP_EOL;
 		break;
 	//------------ TrackOriginExactChangedPrefix, TrackOriginIncludeChangedPrefix ------------//
 	case 'TrackOriginExactChangedPrefix':
 	case 'TrackOriginIncludeChangedPrefix':
-		echo'  START : 変更検出の基準となる日時',PHP_EOL,
+		echo'  RC    : 取得するルートコレクタ',PHP_EOL,
+			'  START : 変更検出の基準となる日時',PHP_EOL,
 			'          この日時と次（8時間後）の日時を比較して変更があったIPプレフィックスを追跡する',PHP_EOL,
 			'  END   : 変更検出を行う期間の終了日時',PHP_EOL;
 		break;
 	//------------ TrackOriginExactChangedPrefix2, TrackOriginIncludeChangedPrefix2 ------------//
 	case 'TrackOriginExactChangedPrefix2':
 	case 'TrackOriginIncludeChangedPrefix2':
-		echo'  DATE : 変更検出の基準となる日時',PHP_EOL,
-			'         この日時と前（8時間前）の日時を比較して変更があったIPプレフィックスを追跡する',PHP_EOL;
+		echo'  RC   : 取得するルートコレクタ',PHP_EOL,
+			'  DATE : 変更検出の基準となる日時',PHP_EOL,
+			'         この日時と前（8時間前）の日時を比較して変更があったIPプレフィックスを1週間前から追跡する',PHP_EOL;
 		break;
 	//------------ AnalyseKindAndChangeNum, GroupChangesOfOriginAS ------------//
 	case 'AnalyseKindAndChangeNum':
-	case 'GroupChangesOfOriginAS':
 		echo'  FILENAME : TrackOrigin(Exact|Include)ChangedPrefixサブコマンドで出力されたcsvファイル',PHP_EOL;
 		break;
 	//------------ TrackAndAnalyseKindAndChangeNum ------------//
 	case 'TrackAndAnalyseKindAndChangeNum':
-		echo'  START : 変更検出の基準となる日時',PHP_EOL,
-			'          この日時と次（8時間後）の日時を比較して変更があったIPプレフィックスを追跡する',PHP_EOL,
-			'  END   : 変更検出を行う期間の終了日時',PHP_EOL;
+		echo'  RC         : 取得するルートコレクタ',PHP_EOL,
+			'  START|DATE : 変更検出の基準となる日時',PHP_EOL,
+			'  END        : 変更検出を行う期間の終了日時指定がなければ過去方向に1週間追跡する',PHP_EOL;
 		break;
 	//------------ AnalyseAdvertisementUpdate(Summary) ------------//
-	case 'AnalyseAdvertisementUpdate':
-	case 'AnalyseAdvertisementUpdateSummary':
+	case 'AnalyseAdvertisement':
+	case 'AnalyseAdvertisementSummary':
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
@@ -175,11 +182,16 @@ catch(Exception $e){
 	case 'AddWhoisToMOASCleaningList':
 		echo'  FILENAME : 分析対象のファイルパス',PHP_EOL;
 		break;
-	//------------ Cron* ------------//
-	case 'CronRIPEFull':
-	case 'CronRIPEUpdate':
+	//------------ CronBGPFullRoute/Update ------------//
+	case 'CronBGPFullRoute':
+	case 'CronBGPUpdate':
+		echo'  RC         : 取得するルートコレクタ',PHP_EOL;
+		break;
+
+	//------------ CronASCountry ------------//
 	case 'CronASCountry':
 		break;
+
 	//------------ hoge ------------//
 	case 'hoge':
 		echo'  OPTION1 : その説明',PHP_EOL;

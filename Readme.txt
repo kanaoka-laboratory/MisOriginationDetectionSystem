@@ -2,10 +2,14 @@
 
 Usage: php MODS.php <subcommand> <options>
 
-MySQLのDBが必要．
+MySQLのDBとbgpscannerコマンドが必要．
 DBが不要なコマンドを動かしたいだけの場合はMODS.phpの"$mysqli = new mymysqli();"をコメントアウトすれば一応動く．
 下部に各テーブル情報が記載してある．
 接続用のユーザ名・パスワードはconfig.phpにて記述．
+bgpscannerコマンドは，Ubuntuなら以下のリンクからlibisocoreとbgpscannerのdebファイルをDLしてaptでインストール
+https://isolario.it/web_content/php/site_content/tools.php
+Macの場合は以下のリンクのインストールを参照
+https://nstgt.hatenablog.jp/entry/2019/02/19/235555
 
 //------------ ファイル・ディレクトリ構成 ------------//
 /
@@ -85,7 +89,7 @@ INSERT INTO `ASCountryProgress` (`id`, `rir`, `date`) VALUES
 }
 
 
-//------------ GroupChangesOfOriginASのタイプ ------------//
+//------------ AnalyseKindAndChangeNumのタイプ ------------//
 Type0: 変化無し（特記事項なし）
 	ex. A A A A A A A A
 	ex. A/B A/B A/B A/B 
@@ -127,3 +131,5 @@ data_kind_num ≧3->(5)			 (4)
 3. フルルートに全く同じIPプレフィックスが存在し，OriginASが異なる											// ARTEMISにおける Exact prefix hijacking
 4. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが同じ（ハイジャックへの防御？）
 5. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが異なる（ハイジャック？）		// ARTEMISにおける Sub-prefix hijacking
+
+//------------ FilterSuspiciousUpdates ------------//

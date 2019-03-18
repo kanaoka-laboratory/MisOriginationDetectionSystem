@@ -1,24 +1,27 @@
 <?php
-function TrackOriginIncludeChangedPrefix2($date){
+function TrackOriginIncludeChangedPrefix2($rc, $date){
 	// 引数処理
+	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	$base_ts = $ts = strtotime($date);
 
 	//==================== 基準時データ読み込み ====================//
 	// ファイル名を作成
-	$ripe = MakeRIPEParam($ts);
+	$filename = MakeFilenames($rc, $ts);
 	// ファイルの存在確認
-	if(!is_file($ripe['phpdata'])) showLog("PHPDataファイルが存在しません: $filename", true);
+	if(!is_file($filename['fullroute_phpdata'])) showLog("PHPDataファイルが存在しません: {$filename['fullroute_phpdata']}", true);
 	// 読み込み
-	showLog("{$ripe['phpdata']} の読み込み");
-	$next_network_list = unserialize(file_get_contents($ripe['phpdata']));	
+	showLog("{$filename['fullroute_phpdata']} の読み込み");
+	$next_network_list = unserialize(file_get_contents($filename['fullroute_phpdata']));	
 	
 	//==================== 基準時の前のデータ読み込み ====================//
 	$ts -= 60*60*8;
-	$ripe = MakeRIPEParam($ts);
-	if(!is_file($ripe['phpdata'])) showLog("PHPDataファイルが存在しません: $filename", true);
+	// ファイル名を作成
+	$filename = MakeFilenames($rc, $ts);
+	// ファイルの存在確認
+	if(!is_file($filename['fullroute_phpdata'])) showLog("PHPDataファイルが存在しません: {$filename['fullroute_phpdata']}", true);
 	// 読み込み
-	showLog("{$ripe['phpdata']} の読み込み");
-	$prev_network_list = unserialize(file_get_contents($ripe['phpdata']));	
+	showLog("{$filename['fullroute_phpdata']} の読み込み");
+	$prev_network_list = unserialize(file_get_contents($filename['fullroute_phpdata']));	
 	
 	//==================== 変更抽出 ====================//
 	// RIPEのBGPDUMPはIPアドレスが昇順，同じIPアドレスはプレフィックス長で昇順に並んでいるのでこれを利用．
@@ -108,14 +111,13 @@ function TrackOriginIncludeChangedPrefix2($date){
 	for($i=0;$i<19;$i++){
 		// タイムスタンプを更新
 		$ts -= 60*60*8;
-		
 		// ファイル名を作成
-		$ripe = MakeRIPEParam($ts);
+		$filename = MakeFilenames($rc, $ts);
 		// ファイルの存在確認
-		if(!is_file($ripe['phpdata'])) showLog("PHPDataファイルが存在しません: $filename", true);
+		if(!is_file($filename['fullroute_phpdata'])) showLog("PHPDataファイルが存在しません: {$filename['fullroute_phpdata']}", true);
 		// network_listの読み込み
-		showLog("{$ripe['phpdata']} の読み込み");
-		$network_list = unserialize(file_get_contents($ripe['phpdata']));	
+		showLog("{$filename['fullroute_phpdata']} の読み込み");
+		$network_list = unserialize(file_get_contents($filename['fullroute_phpdata']));
 		
 		//------------ IncludeMatchによるフィルタリング ------------//
 		foreach(['v4','v6'] as $ip_proto){
@@ -150,12 +152,11 @@ function TrackOriginIncludeChangedPrefix2($date){
 	$oldest_ts = $ts;
 
 	//==================== 結果の出力 ====================//
-	// 出力ファイル名を作成
-	$filebasename = TRACK_PREFIX_RESULT2 . 'TrackOriginIncludeChangedPrefix2_' . date('Ymd_Hi', $base_ts) . '.csv';
-	
 	// 結果の出力
-	showLog("結果の出力: $filebasename");
-	$fp = fopen($filebasename, 'w');
+	$filename = MakeFilenames($rc, $base_ts);
+	showLog("結果の出力: {$filename['track_include_change2']}");
+	$fp = fopen($filename['track_include_change2'], 'w');
+
 
 	// ヘッダ
 	$row = 'base_ip_prefix,ip_prefix';
@@ -175,14 +176,12 @@ function TrackOriginIncludeChangedPrefix2($date){
 				fwrite($fp, $row.PHP_EOL);
 			}
 		}
-		// v4とv6の区切り（なくてもいいかも？）
-		fwrite($fp, PHP_EOL);
 	}
 
 	// クローズ
 	fclose($fp);
 
 	// 結果ファイルのファイル名を返す
-	return $filebasename;
+	return $filename['track_include_change2'];
 }
 ?>
