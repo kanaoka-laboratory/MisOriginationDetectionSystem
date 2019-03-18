@@ -20,7 +20,7 @@ class mymysqli extends mysqli{
 	function query($query, $resultmode = NULL){
 		$result = parent::query($query, $resultmode);
 		if($this->errno>0){
-			echo $this->errno.': '.$this->error.' ('.$query.')'.PHP_EOL;
+			showLog($this->errno.": ".$this->error." (".$query.")");
 		}
 		return $result;
 	}

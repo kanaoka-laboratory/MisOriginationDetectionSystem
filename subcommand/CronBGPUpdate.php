@@ -1,56 +1,66 @@
 <?php
-require_once('subcommand/GetRIPEUpdate.php');
-require_once('subcommand/AnalyseAdvertisementUpdate.php');
-function CronRIPEUpdate(){
-	//------------ 他プロセスが処理中かどうかの確認 ------------//
-	// CRON_RIPE_FULLを読み込み
-	list($date_completed, $date_extracted, $processing) = explode("\n", file_get_contents(CRON_RIPE_UPDATE));
-	// 他プロセスで処理中の場合終了
-	if($processing!=='') showLog('他プロセスで実行中', true);
+require_once('subcommand/GetBGPUpdate.php');
+require_once('subcommand/AnalyseAdvertisement.php');
+function CronBGPUpdate($rc){
+	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
+	global $mysqli;
+
+
+	//------------ 現状を取得 ------------//
+	$cron = $mysqli->query("select id,value,value2,failed_count>=max_failed_count as last_exec,processing from CronProgress ".
+																			"where cron='BGPUpdate' and name='$rc'")->fetch_assoc();
+	if($cron===null) showLog("指定されたルートコレクタは実行できません", true);
+	if($cron["processing"]==true) showLog("他プロセスで実行中", true);
 	
-	//------------ 次の時間で404チェック ------------//
-	// DLするファイルのタイムスタンプ作成，$date_extractedを更新
+	$date_extracted = $cron["value"];
+	$date_completed = $cron["value2"];
+	
+	//------------ 実行準備 ------------//
 	$ts_download = strtotime("$date_extracted +5 minutes");
-	$date_extracted = date('Y-m-d H:i', $ts_download);
-	// 404チェック
-	$ripe = MakeRIPEUpdateParam($ts_download);
-	fclose(fopen($ripe['url'], 'r', false, stream_context_create(array('http'=>array('ignore_errors'=>true)))));
-	if(substr($http_response_header[0], 9, 3)==='404') showLog('ダウンロードできるファイルがありません（404 Not Found）', true);
-	
-	//------------ processingに変更 ------------//
-	showLog('実行開始');
-	file_put_contents(CRON_RIPE_UPDATE, 'processing', FILE_APPEND);
+	$date = date("Y-m-d H:i", $ts_download);
+	// $dateが今より未来なら終了
+	if(time() < strtotime("$date UTC")) showLog("$rc: まだ次のフルルートがダンプされる時間ではありません", true);
+
+	// 実行中フラグを立てる
+	showLog("$rc: 実行開始");
+	$mysqli->query("update CronProgress set processing=true where id={$cron["id"]}");
 
 	//------------ DL，bgpdumpの抽出 ------------//
-	GetRIPEUpdate($date_extracted);
-	// 展開に失敗したら終了．この段階ではprocessingの状態なので手動で直すまでcronの処理は止まる
-	if(!is_file($ripe['bgpdump'])) showLog('DLまたはbgpdumpの抽出に失敗', true);
-	showLog('DL，bgpdumpの抽出完了');
+	$error = GetBGPUpdate($rc, $date);
 	
-	//------------ データが揃っていれば変更検出 ------------//
-	// 実験可能なlatestなタイムスタンプを求める
-	$date_fullroute_completed = explode("\n", file_get_contents(CRON_RIPE_FULL))[0];
-	$ts_max = strtotime("$date_fullroute_completed +8 hours")-60*5;
-	// 実験を行いたいoldestなタイムスタンプを求める
-	$ts = strtotime("$date_completed +5 minutes");
-	
-	//------------ 実験可能なデータはない ------------//
-	// 2行目（$date_extracted）を更新して3行目（processing）を空行にする
-	if($ts > $ts_max){
-		file_put_contents(CRON_RIPE_UPDATE, "$date_completed\n$date_extracted\n");
-		showLog('変更検出の対象となる8時間おきのフルルートのデータがまだ揃っていません', true);
+	// 成功
+	if(empty($error)){
+		$mysqli->query("update CronProgress set value='$date',failed_count=0 where id={$cron["id"]}");
+		showLog("$rc: DL，bgpdump抽出完了");
+		//------------ 変更検出 ------------//
+		// 変更検出を行うoldestなタイムスタンプを取得
+		$ts = strtotime("$date_completed +5 minutes");
+		$ts_max = $ts_download;
+		// 展開が終わってるlatestのフルルートの時間から$ts_maxを取得
+		$row = $mysqli->query("select value2 from CronProgress where cron='BGPFullRoute' and name='$rc'")->fetch_assoc();
+		$ts_fullroute_available = strtotime(($row? $row['value2']: "1970-01-01 UTC"). " +8 hours");
+		
+		// 変更検出するデータがない：$ts_fullroute_availableは$ts_maxより大きくなければ実行できない
+		if($ts_fullroute_available <= $ts_max){
+			showLog("変更検出の対象となるデータがありません");
+			$mysqli->query("update CronProgress set processing=false where id={$cron["id"]}");
+		}// 変更検出
+		else{
+			// $ts〜$ts_maxまでの変更検出，ログは呼び出し先関数内にお任せ
+			$date_max = date('Y-m-d H:i', $ts_max);
+			AnalyseAdvertisement($rc, date('Y-m-d H:i', $ts), $date_max);
+			showLog('変更検出完了');
+			$mysqli->query("update CronProgress set value2='$date_max', processing=false where id={$cron["id"]}");
+		}
+	}// 失敗
+	elseif($cron["last_exec"]==false){
+		$mysqli->query("update CronProgress set failed_count=failed_count+1, processing=false where id={$cron["id"]}");
+		showLog("$rc: 失敗：$date");
+	}// 失敗失敗（失敗が続いたためスキップする）
+	else{
+		$mysqli->query("update CronProgress set value='$date', failed_count=0, processing=false where id={$cron["id"]}");
+		showLog("$rc: 失敗：$date");
+		showLog("$rc: 複数回失敗したため $date をスキップします");
 	}
-
-	//------------ 変更検出 ------------//
-	// フルルートが処理できるタイムスタンプとBGPDUMPが展開済みのタイムスタンプのうち小さい方をts_maxとする
-	$ts_max = ($ts_max>$ts_download)? $ts_download: $ts_max;
-	// $ts〜$ts_maxまでの変更検出（date(string)とts(int)の変換が多いな，，減らせないもんかね，，，）
-	// ログは呼び出し先関数内にお任せ
-	$date_max = date('Y-m-d H:i', $ts_max);
-	AnalyseAdvertisementUpdate(date('Y-m-d H:i', $ts), $date_max);
-
-	//------------ 終了処理 ------------//
-	showLog('変更検出完了');
-	file_put_contents(CRON_RIPE_UPDATE, "$date_max\n$date_extracted\n");
 }
 ?>

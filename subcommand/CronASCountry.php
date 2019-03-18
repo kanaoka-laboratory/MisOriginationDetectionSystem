@@ -28,7 +28,7 @@ function CronASCountry(){
 			// ファイルからDBに登録
 			GetASCountry($rir, $ts);
 			// 終了処理
-			$mysqli->query("update CronProgress set value='$date', date_success=current_timestamp(), failed_count=0, processing=false where id={$cron["id"]}");
+			$mysqli->query("update CronProgress set value='$date', value2='$date', failed_count=0, processing=false where id={$cron["id"]}");
 		}// 失敗
 		elseif($cron["last_exec"]==false){
 			$mysqli->query("update CronProgress set failed_count=failed_count+1, processing=false where id={$cron["id"]}");

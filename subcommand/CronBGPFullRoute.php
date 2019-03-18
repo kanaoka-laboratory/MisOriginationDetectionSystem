@@ -7,11 +7,11 @@ function CronBGPFullRoute($rc){
 
 	// 現状を取得
 	$cron = $mysqli->query("select id,value,failed_count>=max_failed_count as last_exec,processing from CronProgress ".
-																			"where cron='BGPFullRoute' and name='$rc'")->fetch_assoc();
+																	"where cron='BGPFullRoute' and name='$rc'")->fetch_assoc();
 	if($cron===null) showLog("指定されたルートコレクタは実行できません", true);
 	if($cron["processing"]==true) showLog("他プロセスで実行中", true);
 
-	// DLするファイルのタイムスタンプ作成，$dateを更新
+	// DLするファイルのタイムスタンプ作成
 	$date = date("Y-m-d H:i", strtotime($cron["value"]." +8 hours"));
 	// $dateが今より未来なら終了
 	if(time() < strtotime("$date UTC")) showLog("$rc: まだ次のフルルートがダンプされる時間ではありません", true);
@@ -25,16 +25,16 @@ function CronBGPFullRoute($rc){
 	
 	//成功
 	if(empty($error)){
-		$mysqli->query("update CronProgress set value='$date', date_success=current_timestamp(), failed_count=0, processing=false where id={$cron["id"]}");
+		$mysqli->query("update CronProgress set value='$date', value2='$date', failed_count=0, processing=false where id={$cron["id"]}");
 		showLog("$rc: DL，bgpdump・PHPData抽出完了");
 	}// 失敗
 	elseif($cron["last_exec"]==false){
 		$mysqli->query("update CronProgress set failed_count=failed_count+1, processing=false where id={$cron["id"]}");
-		showLog("$rc: 失敗：{$error[0]}");
+		showLog("$rc: 失敗：$date");
 	}// 失敗（失敗が続いたためスキップする）
 	else{
 		$mysqli->query("update CronProgress set value='$date', failed_count=0, processing=false where id={$cron["id"]}");
-		showLog("$rc: 失敗：{$error[0]}");
+		showLog("$rc: 失敗：$date");
 		showLog("$rc: 複数回失敗したため $date をスキップします");
 	}
 }

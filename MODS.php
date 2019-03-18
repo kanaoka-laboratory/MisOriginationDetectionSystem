@@ -22,7 +22,7 @@ $subcommand_usage = array(
 	'MakeMOASCleaningList'					=> 'MakeMOASCleaningList <START> [<END>] [<WHITELIST>]                 : FilterSuspiciousAdvertisementの結果から重複を削除し国の情報を付与',
 	'AddWhoisToMOASCleaningList'			=> 'AddWhoisToMOASCleaningList <FILENAME>                              : MakeMOASCleaningListの結果にwhoisの情報を付与（whoisのfulltextはDBに保存）',
 	'CronBGPFullRoute'						=> 'CronBGPFullRoute <RC>                                              : Cron実行用（8時間おきのフルルートを取得して変更検出）',
-	'CronRIPEUpdate'						=> 'CronRIPEUpdate                                                     : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
+	'CronBGPUpdate'							=> 'CronBGPUpdate <RC>                                                 : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
 	'CronASCountry'							=> 'CronASCountry                                                      : Cron実行用（ASと国の紐付け）',
 	'help'									=> 'help                                                               : このドキュメントを表示',
 );

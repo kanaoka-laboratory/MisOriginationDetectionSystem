@@ -85,8 +85,8 @@ function AnalyseAdvertisement($rc, $start, $end = null){
 						// フルルートに同じasnがない（type3）
 						else{
 							fwrite($fp, "3,$ip_prefix,$ip_prefix,$asn,$conflict_asn,$datetime".PHP_EOL);
-							$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, ip_prefix, conf_ip_prefix, asn, conf_asn, datetime,rc)".
-									" values('$ip_proto', 3, '$ip_prefix', '$ip_prefix', $asn, $conflict_asn, '$datetime', '$rc')");
+							$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, ip_prefix, conf_ip_prefix, asn, conf_asn, datetime, rc) ".
+									"values('$ip_proto', 3, '$ip_prefix', '$ip_prefix', $asn, $conflict_asn, '$datetime', '$rc')");
 						}
 					}
 				}// フルルートに全く同じIPプレフィックスが存在しない（type1 or type4 or type5）
@@ -110,8 +110,8 @@ function AnalyseAdvertisement($rc, $start, $end = null){
 								}// type5：重複はあったが一致はなかった
 								else{
 									fwrite($fp, "5,$ip_prefix,{$conflict['ip_prefix']},$asn,{$conflict['asn']},$datetime".PHP_EOL);
-									$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, ip_prefix, conf_ip_prefix, asn, conf_asn, datetime,rc)".
-											" values(null, '$ip_proto', 5, '$ip_prefix', '{$conflict['ip_prefix']}', $asn, {$conflict['asn']}, '$datetime', '$rc')");
+									$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, ip_prefix, conf_ip_prefix, asn, conf_asn, datetime, rc) ".
+											"values('$ip_proto', 5, '$ip_prefix', '{$conflict['ip_prefix']}', $asn, {$conflict['asn']}, '$datetime', '$rc')");
 								}
 							}
 							break;
