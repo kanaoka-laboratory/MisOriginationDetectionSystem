@@ -12,7 +12,7 @@ CREATE TABLE `ASCountry` (
  `date_until` date NOT NULL COMMENT '日時（終了日）',
  PRIMARY KEY (`id`),
  KEY `date_until` (`date_until`,`date_since`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ASと国の紐付け情報'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ASと国の紐付け情報';
 
 
 
@@ -25,7 +25,7 @@ CREATE TABLE `ConflictAsnWhiteList` (
  `date` datetime NOT NULL DEFAULT current_timestamp() COMMENT '登録日',
  `disabled` datetime DEFAULT NULL COMMENT '無効化フラグ',
  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ASレベルのホワイトリスト'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ASレベルのホワイトリスト';
 
 
 
@@ -37,7 +37,7 @@ CREATE TABLE `ConflictCountryWhiteList` (
  `conflict_cc` char(2) NOT NULL COMMENT '国コード（被ハイジャック側）',
  PRIMARY KEY (`id`),
  KEY `country` (`cc`,`conflict_cc`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='国レベルのホワイトリスト'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='国レベルのホワイトリスト';
 
 
 
@@ -47,7 +47,7 @@ CREATE TABLE `CountryInfo` (
  `country_name` varchar(255) NOT NULL COMMENT '国名',
  `rir` enum('apnic','arin','ripencc','lacnic','afrinic') NOT NULL COMMENT '所属RIR',
  PRIMARY KEY (`cc`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='国情報'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='国情報';
 
 -- data
 INSERT INTO `CountryInfo` (`cc`, `country_name`, `rir`) VALUES
@@ -315,7 +315,7 @@ CREATE TABLE `CronProgress` (
  `processing` bit(1) NOT NULL COMMENT '実行中フラグ',
  PRIMARY KEY (`id`),
  UNIQUE KEY `cron` (`cron`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='cronの進捗管理'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='cronの進捗管理';
 
 -- data
 INSERT INTO `CronProgress` (`id`, `cron`, `name`, `value`, `value2`, `failed_count`, `max_failed_count`, `processing`) VALUES
@@ -341,11 +341,7 @@ CREATE TABLE `PrefixConflictedUpdate` (
  `datetime` datetime NOT NULL COMMENT '広告された時間',
  `rc` varchar(191) NOT NULL COMMENT 'ルートコレクタ',
  PRIMARY KEY (`update_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='IPプレフィックスが衝突しているBGP広告'
-
-
-
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='IPプレフィックスが衝突しているBGP広告';
 
 
 
