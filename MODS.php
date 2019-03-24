@@ -24,6 +24,7 @@ $subcommand_usage = array(
 	'CronBGPFullRoute'						=> 'CronBGPFullRoute <RC>                                              : Cron実行用（8時間おきのフルルートを取得して変更検出）',
 	'CronBGPUpdate'							=> 'CronBGPUpdate <RC>                                                 : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
 	'CronASCountry'							=> 'CronASCountry                                                      : Cron実行用（ASと国の紐付け）',
+	'ImportSubmarineCableList'				=> 'ImportSubmarineCableList <CABLE LIST>                              : SubmarineCableMapより取得したCSVから海底ケーブルで接続された国を探し，DBに登録する',
 	'help'									=> 'help                                                               : このドキュメントを表示',
 );
 
@@ -123,6 +124,13 @@ try{
 		startLogging($subcommand);
 		$subcommand();
 		break;
+	
+	//------------ ImportSubmarineCableList ------------//
+	case 'ImportSubmarineCableList':
+		if(!isset($option[0])) throw new Exception();
+		startLogging($subcommand);
+		$subcommand($option[0]);
+		break;
 	}
 }
 //------------ コマンド毎の説明 ------------//
@@ -192,9 +200,9 @@ catch(Exception $e){
 	case 'CronASCountry':
 		break;
 
-	//------------ hoge ------------//
-	case 'hoge':
-		echo'  OPTION1 : その説明',PHP_EOL;
+	//------------ ImpotSubmarineCableList ------------//
+	case 'ImpotSubmarineCableList':
+		echo'  <CABLE LIST> : SubmarineCableMapより取得したfusion-cables-(YmdHi).csv',PHP_EOL;
 		break;
 	}
 	exit(1);
