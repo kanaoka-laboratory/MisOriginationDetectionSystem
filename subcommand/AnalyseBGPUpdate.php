@@ -1,5 +1,5 @@
 <?php
-function AnalyseAdvertisement($rc, $start, $end = null){
+function AnalyseBGPUpdate($rc, $start, $end = null){
 	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	if($end===null) $end = $start;
 

@@ -97,7 +97,7 @@ data_kind_num ≧3->(5)			 (4)
 	|
    (3)
 
-//------------ AnalyseAdvertisementUpdateのタイプ（adv_type） ------------//
+//------------ AnalyseBGPUpdateのタイプ（adv_type） ------------//
 1. フルルートに重複するIPプレフィックスがなく，全く新しい経路の追加
 2. フルルートに全く同じIPプレフィックスが存在し，OriginASが同じである（KeepAlive？）
 3. フルルートに全く同じIPプレフィックスが存在し，OriginASが異なる											// ARTEMISにおける Exact prefix hijacking
