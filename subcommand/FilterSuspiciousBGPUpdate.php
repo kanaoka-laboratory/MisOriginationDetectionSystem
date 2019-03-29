@@ -71,14 +71,14 @@ function FilterSuspiciousBGPUpdate(){
 
 		//------------ Suspicious_idの取得Updateの登録 ------------//
 		$suspicious_id='null';
-		$result2 = $mysqli->query("select suspicious_id from SuspiciousUpdate where ".
+		$result2 = $mysqli->query("select suspicious_id from SuspiciousAsnSet where ".
 						"asn=$asn and conflict_asn='$conflict_asn' and asn_cc='$asn_cc' and conflict_asn_cc='$conflict_asn_cc'")->fetch_assoc();
 
 		if($result2){
 			$suspicious_id = $result2["suspicious_id"];
 		}else{
 			$date_detection = (new DateTime("now", new DateTimeZone('UTC')))->format("Y-m-d H:i:s");
-			$mysqli->query("insert into SuspiciousUpdate (conflict_type,asn,conflict_asn,asn_cc,conflict_asn_cc,asn_whois,conflict_asn_whois,date_detection) ".
+			$mysqli->query("insert into SuspiciousAsnSet (conflict_type,asn,conflict_asn,asn_cc,conflict_asn_cc,asn_whois,conflict_asn_whois,date_detection) ".
 					"values($conflict_type,$asn,'$conflict_asn','$asn_cc','$conflict_asn_cc','$asn_whois','$conflict_asn_whois','$date_detection')");
 			$suspicious_id = $mysqli->insert_id;
 		}

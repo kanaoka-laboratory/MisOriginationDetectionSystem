@@ -45,7 +45,7 @@ CREATE TABLE `ConflictCountryWhiteList` (
 CREATE TABLE `CountryInfo` (
  `cc` char(2) NOT NULL COMMENT '国コード',
  `country_name` varchar(255) NOT NULL COMMENT '国名',
- `rir` enum('apnic','arin','ripencc','lacnic','afrinic') NOT NULL COMMENT '所属RIR',
+ `rir` enum('apnic','arin','ripencc','lacnic','afrinic','other') NOT NULL COMMENT '所属RIR',
  PRIMARY KEY (`cc`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='国情報';
 
@@ -321,11 +321,30 @@ CREATE TABLE `CronProgress` (
 INSERT INTO `CronProgress` (`id`, `cron`, `name`, `value`, `value2`, `failed_count`, `max_failed_count`, `processing`) VALUES
 (1, 'BGPFullRoute', 'ripe_rc00', '2017-12-31 16:00', '1970-01-01 00:00', 0, 16, b'0'),
 (2, 'BGPUpdate', 'ripe_rc00', '2017-12-31 23:55', '2017-12-31 23:55', 0, 16, b'0'),
-(101, 'ASCountry', 'apnic', '2017-12-31', '1970-01-01 00:00:00', 1, 24, b'0'),
-(102, 'ASCountry', 'arin', '2017-12-31', '1970-01-01 00:00:00', 2, 24, b'0'),
-(103, 'ASCountry', 'ripencc', '2017-12-31', '1970-01-01 00:00:00', 2, 24, b'0'),
+(101, 'ASCountry', 'apnic', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),
+(102, 'ASCountry', 'arin', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),
+(103, 'ASCountry', 'ripencc', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),
 (104, 'ASCountry', 'lacnic', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),
-(105, 'ASCountry', 'afrinic', '2017-12-31', '1970-01-01 00:00:00', 1, 24, b'0');
+(105, 'ASCountry', 'afrinic', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0');
+
+
+
+-- Table structure for table `SuspiciousUpdate`
+CREATE TABLE `SuspiciousAsnSet` (
+ `suspicious_id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'suspicious_id',
+ `conflict_type` tinyint(4) NOT NULL COMMENT 'conflict_type（1, 10〜）',
+ `asn` int(10) unsigned NOT NULL COMMENT '広告したAS',
+ `conflict_asn` varchar(191) NOT NULL COMMENT '衝突先AS',
+ `asn_cc` char(2) NOT NULL COMMENT '国コード',
+ `conflict_asn_cc` varchar(191) NOT NULL COMMENT '衝突先国コード',
+ `asn_whois` varchar(191) NOT NULL,
+ `conflict_asn_whois` varchar(191) NOT NULL,
+ `date_detection` datetime NOT NULL COMMENT '検知日時',
+ PRIMARY KEY (`suspicious_id`),
+ UNIQUE KEY `conflict_info` (`asn`,`conflict_asn`,`asn_cc`,`conflict_asn_cc`) USING BTREE,
+ KEY `date_detection` (`date_detection`),
+ KEY `conflict_type` (`conflict_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='怪しいASの組み合わせ';
 
 
 
@@ -334,26 +353,20 @@ CREATE TABLE `PrefixConflictedUpdate` (
  `update_id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'id',
  `ip_protocol` enum('v4','v6') NOT NULL COMMENT 'v4 or v6',
  `adv_type` tinyint(4) NOT NULL COMMENT 'advertisement_type',
- `pre_conflict_type` tinyint(4) DEFAULT NULL COMMENT 'conflict_type（Whitelistなし0〜9）',
- `ip_prefix` varchar(24) NOT NULL COMMENT '広告されたIP prefix',
- `conf_ip_prefix` varchar(24) NOT NULL COMMENT '衝突先IP prefix',
  `asn` int(10) unsigned NOT NULL COMMENT '広告したAS',
- `conf_asn` int(10) unsigned NOT NULL COMMENT '衝突先AS',
- `date_advertise` datetime NOT NULL COMMENT '広告された時間（UTC）',
+ `conflict_asn` varchar(191) NOT NULL COMMENT '衝突先AS',
+ `ip_prefix` varchar(24) NOT NULL COMMENT '広告されたIP prefix',
+ `conflict_ip_prefix` varchar(24) NOT NULL COMMENT '衝突先IP prefix',
+ `date_update` datetime NOT NULL COMMENT '広告された時間',
  `rc` varchar(191) NOT NULL COMMENT 'ルートコレクタ',
- PRIMARY KEY (`update_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='IPプレフィックスが衝突しているBGP広告'
-
-
-
--- Table structure for table `SuspiciousUpdate`
-CREATE TABLE `SuspiciousUpdate` (
- `update_id` int(10) unsigned NOT NULL COMMENT 'PrefixConflictedUpdateのupdate_id',
- `conflict_type` int(11) NOT NULL COMMENT 'conflict_type（1, 10〜）',
- `date_detection` timestamp NOT NULL DEFAULT current_timestamp() COMMENT '検知日時',
+ `count` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '重複数',
+ `suspicious_id` int(10) unsigned DEFAULT NULL COMMENT 'SuspiciousUpdateのsuspicious_id',
  PRIMARY KEY (`update_id`),
- CONSTRAINT `update_id` FOREIGN KEY (`update_id`) REFERENCES `PrefixConflictedUpdate` (`update_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+ UNIQUE KEY `confliction` (`asn`,`conflict_asn`,`ip_prefix`,`conflict_ip_prefix`,`rc`) USING BTREE,
+ KEY `adv_type` (`adv_type`),
+ KEY `suspicious_id` (`suspicious_id`),
+ CONSTRAINT `prefixconflictedupdate_ibfk_1` FOREIGN KEY (`suspicious_id`) REFERENCES `SuspiciousAsnSet` (`suspicious_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='IPプレフィックスが衝突しているBGP広告';
 
 
 
@@ -367,7 +380,7 @@ CREATE TABLE `Whois` (
  `date` datetime NOT NULL DEFAULT current_timestamp(),
  PRIMARY KEY (`whois_id`),
  UNIQUE KEY `query` (`query`,`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT COMMENT='whois情報'
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT COMMENT='whois情報';
 
 
 
