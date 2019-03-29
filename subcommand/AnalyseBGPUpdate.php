@@ -17,7 +17,7 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 	if($tmp_Hi>='1600')		$fullroute_filename = MakeFilenames($rc, strtotime(date('Y-m-d 16:00', $ts)))['fullroute_phpdata'];
 	elseif($tmp_Hi>='0800')	$fullroute_filename = MakeFilenames($rc, strtotime(date('Y-m-d 08:00', $ts)))['fullroute_phpdata'];
 	else					$fullroute_filename = MakeFilenames($rc, strtotime(date('Y-m-d 00:00', $ts)))['fullroute_phpdata'];
-	if(!is_file($fullroute_filename)) showLog("実験対象となるフルルートのデータ（$fullroute_filename）がありません", true);
+	if(!is_file($fullroute_filename)) showLog("実験対象となるフルルートのデータ（{$fullroute_filename}）がありません", true);
 	$network_list = unserialize(file_get_contents($fullroute_filename));
 	
 	// 5分ごとに時間をずらしながら実行
@@ -85,8 +85,9 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 						// フルルートに同じasnがない（type3）
 						else{
 							fwrite($fp, "3,$ip_prefix,$ip_prefix,$asn,$conflict_asn,$datetime".PHP_EOL);
-							$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, ip_prefix, conf_ip_prefix, asn, conf_asn, datetime, rc) ".
-									"values('$ip_proto', 3, '$ip_prefix', '$ip_prefix', $asn, $conflict_asn, '$datetime', '$rc')");
+							$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, asn, conflict_asn, ip_prefix, conflict_ip_prefix, date_update, rc) ".
+									"values('$ip_proto', 3, $asn, '$conflict_asn', '$ip_prefix', '$ip_prefix', '$datetime', '$rc') ".
+									"on duplicate key update count=count+1");
 						}
 					}
 				}// フルルートに全く同じIPプレフィックスが存在しない（type1 or type4 or type5）
@@ -110,8 +111,9 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 								}// type5：重複はあったが一致はなかった
 								else{
 									fwrite($fp, "5,$ip_prefix,{$conflict['ip_prefix']},$asn,{$conflict['asn']},$datetime".PHP_EOL);
-									$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, ip_prefix, conf_ip_prefix, asn, conf_asn, datetime, rc) ".
-											"values('$ip_proto', 5, '$ip_prefix', '{$conflict['ip_prefix']}', $asn, {$conflict['asn']}, '$datetime', '$rc')");
+									$mysqli->query("insert into PrefixConflictedUpdate (ip_protocol, adv_type, asn, conflict_asn, ip_prefix, conflict_ip_prefix, date_update, rc) ".
+											"values('$ip_proto', 5, $asn, '{$conflict['asn']}', '$ip_prefix', '{$conflict['ip_prefix']}', '$datetime', '$rc') ".
+											"on duplicate key update count=count+1");
 								}
 							}
 							break;

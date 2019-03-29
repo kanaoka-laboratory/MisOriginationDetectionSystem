@@ -1,7 +1,7 @@
 <?php
-function GetWhois($query){
+function GetWhois($query, $date = "now"){
 	if(preg_match("/^(AS|as)?([0-9]+)$/", $query, $m))
-		return GetWhoisAS($m[2]);
+		return GetWhoisAS($m[2], $date);
 	else
 		return null;
 }
@@ -9,28 +9,29 @@ function GetWhois($query){
 //==================== AS番号からwhois情報の取得 ====================//
 // asn: 検索するAS番号
 // 返り値: DBの構造をした配列（今のとこ whois_id, host, query, name, body, date）
-function GetWhoisAS($asn){
+function GetWhoisAS($asn, $date = "now"){
 	// 引数チェック
 	if(preg_match('/^(AS|as)?([0-9]+)$/', $asn, $m)) $asn = (int)$m[2];
 	else return null;
 	// 不正なAS番号
 	if($asn<=0 || (64512<=$asn && $asn<=65564)) return null;
+	if(is_int($date)) $date = date('Y-m-d H:i:s', $date);
+	else $date = date('Y-m-d H:i:s', strtotime($date));
 	
 	global $mysqli;
 	// mysql問い合わせ
-	$whois = $mysqli->query("select * from Whois where query='as$asn'")->fetch_assoc();
+	$result = $mysqli->query("select * from Whois where query='as$asn' order by date_query desc");
+	$whois = $result->fetch_assoc();
+	while($row = $result->fetch_assoc()){
+		$whois = $row;
+		if($whois["date_query"]<$date) break;
+	}
 	
 	// 結果が帰ってきた場合はそのまま返す
 	if($whois!==null) return $whois;
-	
-	// DBになかった場合はwhois検索（・DB登録）を行い，結果を返す．	
-	if(($whois_id = QueryWhoisAS($asn))!==null){
-		$whois = $mysqli->query("select * from Whois where whois_id=$whois_id")->fetch_assoc();
-		return $whois;
-	}
 
-	// whois検索しても見つからない場合はnullを返す
-	return null;
+	// DBになかった場合はwhois検索（・DB登録）を行い，結果を返す．	
+	return QueryWhoisAS($asn);	
 }
 
 function QueryWhoisAS($asn){
@@ -64,7 +65,8 @@ function QueryWhoisAS($asn){
 		if($rir==='arin') fwrite($fp, "a $asn".PHP_EOL);	
 		else fwrite($fp, "as$asn".PHP_EOL);
 		while(!feof($fp)) $fulltext .= fgets($fp, 128);
-		$fulltext = str_replace(array("\r\n","\r"),"\n", $fulltext);
+		// 改行の削除，文字コードの変換
+		$fulltext = mb_convert_encoding(str_replace(array("\r\n","\r"),"\n", $fulltext), "UTF-8", "ASCII, UTF-8, ISO-8859-1");
 		fclose($fp);
 		//------------ fulltextからnameを取得 ------------//
 		switch($rir) {
@@ -148,11 +150,22 @@ function QueryWhoisAS($asn){
 	if($whois_not_exists) return null;
 	
 	//------------ mysqlに登録 ------------//
+	// エスケープ前のデータ保存
+	$date = (new DateTime("now", new DateTimeZone("UTC")))->format("Y-m-d H:i:s");
+	$whois = array(	"host"		=> "whois.$rir.net",
+					"query"		=> "as$asn",
+					"name"		=> $name,
+					"body"		=> $fulltext,
+					"date"		=> $date);
+	// エスケープ
 	$name = $mysqli->real_escape_string($name);
 	$fulltext = $mysqli->real_escape_string($fulltext);
-	$mysqli->query("insert into Whois (host, query, name, body) values ('whois.$rir.net', 'as$asn', '$name', '$fulltext')");
-	
-	// 成功した場合はinsert_idを返す
-	return $mysqli->insert_id;
-}
+	// SQL実行
+	$mysqli->query("insert into Whois (host, query, name, body, date_query) values ('whois.$rir.net', 'as$asn', '$name', '$fulltext', '$date')");
+	if($mysqli->errno===0){
+		$whois["whois_id"] = $mysqli->insert_id;
+		return $whois;
+	}
+	return null;
+}	
 ?>

@@ -96,9 +96,13 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0], $option[1], isset($option[2])?$option[2]:null);
 		break;
-	//------------ FilterSuspiciousAdvertisement ------------//
-	case 'FilterSuspiciousAdvertisement':
-	case 'FilterSuspiciousAdvertisementSummary':
+	//------------ FilterSuspiciousBGPUpdate ------------//
+	case 'FilterSuspiciousBGPUpdate':
+		startLogging($subcommand);
+		$subcommand();
+		break;
+	//------------ FilterSuspiciousBGPUpdateSummary ------------//
+	case 'FilterSuspiciousBGPUpdateSummary':
 	case 'MakeMOASCleaningList':
 		if(!isset($option[0])) throw new Exception();
 		startLogging($subcommand);
@@ -178,9 +182,11 @@ catch(Exception $e){
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
-	//------------ FilterSuspiciousAdvertisement ------------//
-	case 'FilterSuspiciousAdvertisement':
-	case 'FilterSuspiciousAdvertisementSummary':
+	//------------ FilterSuspiciousBGPUpdate ------------//
+	case 'FilterSuspiciousBGPUpdate':
+		break;
+	//------------ FilterSuspiciousBGPUpdateSummary ------------//
+	case 'FilterSuspiciousBGPUpdateSummary':
 	case 'MakeMOASCleaningList':
 		echo'  START      : 分析対象の日付',PHP_EOL,
 			'  END        : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL,

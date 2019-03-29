@@ -22,7 +22,7 @@ CREATE TABLE `ConflictAsnWhiteList` (
  `conflict_type` tinyint(4) NOT NULL COMMENT '例外の種類',
  `asn` int(10) unsigned NOT NULL COMMENT 'ハイジャックAS番号',
  `conflict_asn` int(10) unsigned NOT NULL COMMENT '被ハイジャックAS番号',
- `date` datetime NOT NULL DEFAULT current_timestamp() COMMENT '登録日',
+ `date_register` datetime NOT NULL DEFAULT current_timestamp() COMMENT '登録日',
  `disabled` datetime DEFAULT NULL COMMENT '無効化フラグ',
  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ASレベルのホワイトリスト';
@@ -334,14 +334,40 @@ CREATE TABLE `PrefixConflictedUpdate` (
  `update_id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'id',
  `ip_protocol` enum('v4','v6') NOT NULL COMMENT 'v4 or v6',
  `adv_type` tinyint(4) NOT NULL COMMENT 'advertisement_type',
+ `pre_conflict_type` tinyint(4) DEFAULT NULL COMMENT 'conflict_type（Whitelistなし0〜9）',
  `ip_prefix` varchar(24) NOT NULL COMMENT '広告されたIP prefix',
  `conf_ip_prefix` varchar(24) NOT NULL COMMENT '衝突先IP prefix',
  `asn` int(10) unsigned NOT NULL COMMENT '広告したAS',
  `conf_asn` int(10) unsigned NOT NULL COMMENT '衝突先AS',
- `datetime` datetime NOT NULL COMMENT '広告された時間',
+ `date_advertise` datetime NOT NULL COMMENT '広告された時間（UTC）',
  `rc` varchar(191) NOT NULL COMMENT 'ルートコレクタ',
  PRIMARY KEY (`update_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='IPプレフィックスが衝突しているBGP広告';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='IPプレフィックスが衝突しているBGP広告'
+
+
+
+-- Table structure for table `SuspiciousUpdate`
+CREATE TABLE `SuspiciousUpdate` (
+ `update_id` int(10) unsigned NOT NULL COMMENT 'PrefixConflictedUpdateのupdate_id',
+ `conflict_type` int(11) NOT NULL COMMENT 'conflict_type（1, 10〜）',
+ `date_detection` timestamp NOT NULL DEFAULT current_timestamp() COMMENT '検知日時',
+ PRIMARY KEY (`update_id`),
+ CONSTRAINT `update_id` FOREIGN KEY (`update_id`) REFERENCES `PrefixConflictedUpdate` (`update_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+
+
+
+-- Table structure for table `Whois`
+CREATE TABLE `Whois` (
+ `whois_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ `host` varchar(191) NOT NULL,
+ `query` varchar(191) NOT NULL,
+ `name` varchar(191) NOT NULL,
+ `body` mediumtext NOT NULL,
+ `date` datetime NOT NULL DEFAULT current_timestamp(),
+ PRIMARY KEY (`whois_id`),
+ UNIQUE KEY `query` (`query`,`date`)
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT COMMENT='whois情報'
 
 
 
