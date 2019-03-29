@@ -18,17 +18,13 @@ function CronASCountry(){
 		showLog("$rir: 実行開始");
 		$mysqli->query("update CronProgress set processing=true where id={$cron["id"]}");
 
-		// ASと国の紐付け情報をDL
-		$filename = DownloadASCountry($rir, $ts);
-		
+		// ファイルをDLしてDBに登録
+		$success = GetASCountry($rir, $ts);
+
 		// 成功
-		if($filename!==false){
-			// ログ
-			showLog("$rir: $date の情報登録");
-			// ファイルからDBに登録
-			GetASCountry($rir, $ts);
-			// 終了処理
+		if($success){
 			$mysqli->query("update CronProgress set value='$date', value2='$date', failed_count=0, processing=false where id={$cron["id"]}");
+			showLog("完了");
 		}// 失敗
 		elseif($cron["last_exec"]==false){
 			$mysqli->query("update CronProgress set failed_count=failed_count+1, processing=false where id={$cron["id"]}");
@@ -45,13 +41,17 @@ function CronASCountry(){
 
 function GetASCountry($rir, $ts){
 	global $mysqli;
-	$filename = AS_COUNTRY.$rir."/".date("Y",$ts)."/".date("Ymd", $ts).".txt";
 	$date = date('Y-m-d',$ts);
 
+	// ファイルのDL
+	$filename = DownloadASCountry($rir, $ts);
+	if($filename===false) return false;
+
+	
 	// すでに登録されている情報をDBから取得
-	$date_done = ($row = $mysqli->query("select max(date_until) as max from ASCountry")->fetch_assoc())? $row["max"]: "";
+	$result = $mysqli->query("select id,asn,country from ASCountry where rir='$rir' and date_until=".
+								"(select value2 from CronProgress where cron='ASCountry' and name='$rir')");
 	$prev_data = array();
-	$result = $mysqli->query("select id,asn,country from ASCountry where rir='$rir' and date_until='$date_done'");
 	while($row = $result->fetch_assoc()){
 		$prev_data[$row['asn']] = array('country'=>$row['country'], 'id'=>$row['id']);
 	}
@@ -78,11 +78,10 @@ function GetASCountry($rir, $ts){
 			else 
 				$mysqli->query("insert into ASCountry (asn,country,rir,date_since,date_until) values ($asn,'$country','$rir','$date_since','$date')");
 		}
-	
 	}
-	$mysqli->query("update ASCountryProgress set date='$date' where rir='$rir'");
 	// トランザクション完了
 	$mysqli->commit();
+	return true;
 }
 
 function DownloadASCountry($rir, $ts){
@@ -99,14 +98,14 @@ function DownloadASCountry($rir, $ts){
 	// 最近の2日分だけ http://ftp.apnic.net/stats/apnic/delegated-apnic-Ymd
 	// それより前は http://ftp.apnic.net/stats/apnic/2018/delegated-apnic-Ymd.gz
 	// Ymdの情報はYmd 0:00時点の情報と思われる（ファイルのタイムスタンプは01:15）
-	case "arin":
+	case "apnic":
 		// 最近の2日分の方をDL
 		$url = "http://ftp.apnic.net/stats/apnic/delegated-apnic-$Ymd";
 		$success = downloadFile($url, $filename);
 		// アーカイブの方をDL
 		if(!$success){
 			// 12/31分は次の年のディレクトリの中にある
-			$url = 'http://ftp.apnic.net/stats/apnic/'.date('Y',$ts['apnic']+60*60*24)."/delegated-apnic-$Ymd.gz";
+			$url = 'http://ftp.apnic.net/stats/apnic/'.date('Y',$ts+60*60*24)."/delegated-apnic-$Ymd.gz";
 			// gzをDLして展開
 			if(downloadFile($url, "/tmp/$Ymd.gz")){
 				system("gunzip -c /tmp/$Ymd.gz > $filename", $retval);
@@ -128,7 +127,7 @@ function DownloadASCountry($rir, $ts){
 	// 一応 http://ftp.apnic.net/stats/ripe-ncc/delegated-ripencc-Ymd もあるが，bz2のほうが更新が早い
 	// Ymdの情報はYmd 23:59時点と思われる（ファイルのタイムスタンプは次の日の09:07）
 	case "ripencc":
-		$url = 'http://ftp.apnic.net/stats/ripe-ncc/'.date('Y',$ts['ripencc'])."/delegated-ripencc-$Ymd.bz2";
+		$url = 'http://ftp.apnic.net/stats/ripe-ncc/'.date('Y',$ts)."/delegated-ripencc-$Ymd.bz2";
 		// bz2をDLして展開
 		$success = downloadFile($url, "/tmp/$Ymd.bz");
 		if($success){
@@ -156,12 +155,11 @@ function DownloadASCountry($rir, $ts){
 		$success = downloadFile($url, $filename);
 		// アーカイブの方をDL
 		if(!$success){
-			$url = 'http://ftp.apnic.net/stats/afrinic/'.date('Y',$ts['afrinic'])."/delegated-afrinic-$Ymd";
+			$url = 'http://ftp.apnic.net/stats/afrinic/'.date('Y',$ts)."/delegated-afrinic-$Ymd";
 			$success = downloadFile($url, $filename);
 		}
 		break;
 	}
-
 	// 成功した場合はファイル名，失敗した場合はfalseを返す
 	if($success) return $filename;
 	else return false;

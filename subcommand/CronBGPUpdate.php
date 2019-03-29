@@ -1,6 +1,6 @@
 <?php
 require_once('subcommand/GetBGPUpdate.php');
-require_once('subcommand/AnalyseAdvertisement.php');
+require_once('subcommand/AnalyseBGPUpdate.php');
 function CronBGPUpdate($rc){
 	if(!isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	global $mysqli;
@@ -48,7 +48,7 @@ function CronBGPUpdate($rc){
 		else{
 			// $ts〜$ts_maxまでの変更検出，ログは呼び出し先関数内にお任せ
 			$date_max = date('Y-m-d H:i', $ts_max);
-			AnalyseAdvertisement($rc, date('Y-m-d H:i', $ts), $date_max);
+			AnalyseBGPUpdate($rc, date('Y-m-d H:i', $ts), $date_max);
 			showLog('変更検出完了');
 			$mysqli->query("update CronProgress set value2='$date_max', processing=false where id={$cron["id"]}");
 		}

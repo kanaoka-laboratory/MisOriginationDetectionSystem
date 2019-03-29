@@ -2,7 +2,7 @@
 // 5分おきのアップデートのAdvertisementに注目した分析
 // （直前のフルルートと比較してどのような経路がAdvertisementされたか）
 // その結果から各時刻毎にtype1〜5がそれぞれどれぐらいずつの量存在するのかを集計する
-function AnalyseAdvertisementSummary($rc, $start, $end=null){
+function AnalyseBGPUpdateSummary($rc, $start, $end=null){
 	if(!is_dir(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	if($end===null) $end = $start;
 	// 開始・終了時間を設定

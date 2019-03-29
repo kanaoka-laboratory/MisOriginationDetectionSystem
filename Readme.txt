@@ -4,7 +4,7 @@ Usage: php MODS.php <subcommand> <options>
 
 MySQLのDBとbgpscannerコマンドが必要．
 DBが不要なコマンドを動かしたいだけの場合はMODS.phpの"$mysqli = new mymysqli();"をコメントアウトすれば一応動く．
-下部に各テーブル情報が記載してある．
+DBSetup.sqlに各テーブル情報が記載してある．
 接続用のユーザ名・パスワードはconfig.phpにて記述．
 bgpscannerコマンドは，Ubuntuなら以下のリンクからlibisocoreとbgpscannerのdebファイルをDLしてaptでインストール
 https://isolario.it/web_content/php/site_content/tools.php
@@ -38,34 +38,6 @@ https://nstgt.hatenablog.jp/entry/2019/02/19/235555
 subcommandディレクトリに，subcommandと同名ファイルを作成，subcomandと同名関数がmain関数となるようにする
 logディレクトリにsubcommandと同名のディレクトリを作成
 MODS.phpを編集（MODSオプション一覧への簡易説明，オプション毎の詳細説明，引数チェック）
-
-
-//==================== MySQLのDB構造，初期化 ====================//
-//------------ ASCountry ------------//
-CREATE TABLE `ASCountry` (
- `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
- `asn` int(11) NOT NULL COMMENT 'AS番号',
- `country` char(2) NOT NULL COMMENT '国コード',
- `rir` enum('apnic','arin','ripencc','lacnic','afrinic') NOT NULL COMMENT '地域レジストリ',
- `date_since` date NOT NULL COMMENT '日時（開始日）',
- `date_until` date NOT NULL COMMENT '日時（終了日）',
- PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-//------------ ASCountryProgress ------------//
-CREATE TABLE `ASCountryProgress` (
- `id` int(11) NOT NULL COMMENT 'id',
- `rir` enum('apnic','arin','ripencc','lacnic','afrinic') NOT NULL COMMENT '地域レジストリ',
- `date` date NOT NULL COMMENT '取得済み日時',
- PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO `ASCountryProgress` (`id`, `rir`, `date`) VALUES
-(1, 'apnic', '2018-12-31'),
-(2, 'arin', '2018-12-31'),
-(3, 'ripencc', '2018-12-31'),
-(4, 'lacnic', '2018-12-31'),
-(5, 'afrinic', '2018-12-31');
 
 
 //==================== プログラムの実装メモ ====================//
@@ -125,11 +97,20 @@ data_kind_num ≧3->(5)			 (4)
 	|
    (3)
 
-//------------ AnalyseAdvertisementUpdateのタイプ ------------//
+//------------ AnalyseBGPUpdateのタイプ（adv_type） ------------//
 1. フルルートに重複するIPプレフィックスがなく，全く新しい経路の追加
 2. フルルートに全く同じIPプレフィックスが存在し，OriginASが同じである（KeepAlive？）
 3. フルルートに全く同じIPプレフィックスが存在し，OriginASが異なる											// ARTEMISにおける Exact prefix hijacking
 4. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが同じ（ハイジャックへの防御？）
 5. フルルートに衝突する（含むor含まれる）IPプレフィックスが存在し，OriginASが異なる（ハイジャック？）		// ARTEMISにおける Sub-prefix hijacking
 
-//------------ FilterSuspiciousUpdates ------------//
+//------------ FilterSuspiciousUpdates（conf_type） ------------//
+0. プライベートAS番号
+1. 怪しい
+10. ホワイトリスト（その他）
+11. ホワイトリスト（US DoD）
+12. ホワイトリスト（Akamai）
+90. MANRS参加AS
+100. 地理的に接続された国
+101. 海底ケーブルで接続された国
+110.　同一国

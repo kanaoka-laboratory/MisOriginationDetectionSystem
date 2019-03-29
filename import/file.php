@@ -81,8 +81,8 @@ function MakeFilenames($rc, $ts){
 	$filename['track_include_change'] =  $dir."TrackOriginIncludeChangedPrefix_$Ymd_Hi.csv";
 	$filename['track_include_change2'] = $dir."$Y/TrackOriginIncludeChangedPrefix2_$Ymd_Hi.csv";
 	
-	//------------ AnalyseAdvertisement ------------//
-	$dir = DIR_RC[$rc].ANALYSE_ADVERTISEMENT;
+	//------------ AnalyseBGPUpdate ------------//
+	$dir = DIR_RC[$rc].ANALYSE_BGP_UPDATE;
 	$dirs[] = $dir.$Y_m;
 	$filename['analyse_advertisement'] = $dir."$Y_m/$Ymd_Hi.csv";
 	$filename['analyse_advertisement_summary'] = $dir."summary_$Ymd_Hi.csv";
