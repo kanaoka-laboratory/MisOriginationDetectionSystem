@@ -321,6 +321,7 @@ CREATE TABLE `CronProgress` (
 INSERT INTO `CronProgress` (`id`, `cron`, `name`, `value`, `value2`, `failed_count`, `max_failed_count`, `processing`) VALUES
 (1, 'BGPFullRoute', 'ripe_rc00', '2017-12-31 16:00', '1970-01-01 00:00', 0, 16, b'0'),
 (2, 'BGPUpdate', 'ripe_rc00', '2017-12-31 23:55', '2017-12-31 23:55', 0, 16, b'0'),
+(3, 'FilterSuspiciousBGPUpdate', '', '', null, 0, 0, b'0'),
 (101, 'ASCountry', 'apnic', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),
 (102, 'ASCountry', 'arin', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),
 (103, 'ASCountry', 'ripencc', '2017-12-31', '1970-01-01 00:00:00', 0, 24, b'0'),

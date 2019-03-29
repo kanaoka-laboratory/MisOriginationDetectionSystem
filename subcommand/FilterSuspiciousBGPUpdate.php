@@ -1,11 +1,14 @@
 <?php
 // テキスト形式のホワイトリストは FILTER_SUSPICIOUS_ADVERTISEMENT の中に hogehoge.txt の形式で保存
 // 同じディレクトリに hogehoge/ ディレクトリを作成する
-function FilterSuspiciousBGPUpdate(){
+function FilterSuspiciousBGPUpdate($rc = null){
+	if($rc!==null && !isset(DIR_RC[$rc])) showLog('不正なルートコレクタです：'.$rc, true);
 	global $mysqli;
 
 	// pre_conflict_typeがnull（AnalyseBGPUpdate直後）の行を取得（一度に最大10000件）
-	$result = $mysqli->query("select update_id,asn,conflict_asn,date_update from PrefixConflictedUpdate where suspicious_id is null limit 10000");
+	$additional_where = $rc!==null? "and rc='$rc'": "";
+	$result = $mysqli->query("select update_id,asn,conflict_asn,date_update from PrefixConflictedUpdate ".
+														"where suspicious_id is null $additional_where limit 10000");
 	// 1行ずつ処理
 	$as_country_list = array();
 	while($update = $result->fetch_assoc()){

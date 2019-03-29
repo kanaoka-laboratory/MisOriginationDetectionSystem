@@ -17,12 +17,10 @@ $subcommand_usage = array(
 	'TrackAndAnalyseKindAndChangeNum'		=> 'TrackAndAnalyseKindAndChangeNum <RC> <START|DATE> [<END>] : TrackOriginChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する',
 	'AnalyseBGPUpdate'						=> 'AnalyseBGPUpdate <RC> <START> [<END>]                     : 5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする',
 	'AnalyseBGPUpdateSummary'				=> 'AnalyseBGPUpdateSummary <RC> <START> [<END>]              : AnalyseAdvertisementの結果から，各時刻毎の各typeの数を集計する（作図用）',
-	'FilterSuspiciousBGPUpdate'				=> 'FilterSuspiciousBGPUpdate <START> [<END>]                 : AnalyseAdvertisementの結果のハイジャックの可能性があるものをホワイトリストを用いて分類する',
-	'FilterSuspiciousBGPUpdateSummary'		=> 'FilterSuspiciousBGPUpdateSummary <START> [<END>]          : FilterSuspiciousAdvertisementの結果から，各時刻毎の各conflict_typeの数を集計する（作図用）',
-	'MakeMOASCleaningList'					=> 'MakeMOASCleaningList <START> [<END>]                      : FilterSuspiciousAdvertisementの結果から重複を削除し国の情報を付与',
-	'AddWhoisToMOASCleaningList'			=> 'AddWhoisToMOASCleaningList <FILENAME>                     : MakeMOASCleaningListの結果にwhoisの情報を付与（whoisのfulltextはDBに保存）',
+	'FilterSuspiciousBGPUpdate'				=> 'FilterSuspiciousBGPUpdate [<RC>]                          : AnalyseAdvertisementの結果のハイジャックの可能性があるものをホワイトリストを用いて分類する',
 	'CronBGPFullRoute'						=> 'CronBGPFullRoute <RC>                                     : Cron実行用（8時間おきのフルルートを取得して変更検出）',
 	'CronBGPUpdate'							=> 'CronBGPUpdate <RC>                                        : Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）',
+	'CronFilterSuspiciousBGPUpdate'			=> 'CronFilterSuspiciousBGPUpdate [<RC>]                      : Cron実行用（ハイジャックの可能性があるASペアをホワイトリストを用いて分類）',
 	'CronASCountry'							=> 'CronASCountry                                             : Cron実行用（ASと国の紐付け）',
 	'ImportSubmarineCableList'				=> 'ImportSubmarineCableList <CABLE LIST>                     : SubmarineCableMapより取得したCSVから海底ケーブルで接続された国を探し，DBに登録する',
 	'help'									=> 'help                                                      : このドキュメントを表示',
@@ -99,22 +97,8 @@ try{
 	//------------ FilterSuspiciousBGPUpdate ------------//
 	case 'FilterSuspiciousBGPUpdate':
 		startLogging($subcommand);
-		$subcommand();
+		$subcommand(isset($option[0])?$option[0]:null);
 		break;
-	//------------ FilterSuspiciousBGPUpdateSummary ------------//
-	case 'FilterSuspiciousBGPUpdateSummary':
-	case 'MakeMOASCleaningList':
-		if(!isset($option[0])) throw new Exception();
-		startLogging($subcommand);
-		$subcommand($option[0], isset($option[1])?$option[1]:null, isset($option[2])?$option[2]:null);
-		break;
-	//------------ AddWhoisToMOASCleaningList ------------//
-	case 'AddWhoisToMOASCleaningList':
-		if(!isset($option[0])) throw new Exception();
-		startLogging($subcommand);
-		$subcommand($option[0]);
-		break;
-
 	//------------ CronBGPFullRoute/Update ------------//
 	case 'CronBGPFullRoute':
 	case 'CronBGPUpdate':
@@ -122,13 +106,16 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0]);
 		break;
-
+	//------------ CronFilterSuspiciousBGPUpdate ------------//
+	case 'CronFilterSuspiciousBGPUpdate':
+		startLogging($subcommand);
+		$subcommand(isset($option[0])?$option[0]:null);
+		break;
 	//------------ CronASCountry ------------//
 	case 'CronASCountry':
 		startLogging($subcommand);
 		$subcommand();
 		break;
-	
 	//------------ ImportSubmarineCableList ------------//
 	case 'ImportSubmarineCableList':
 		if(!isset($option[0])) throw new Exception();
@@ -143,8 +130,8 @@ catch(Exception $e){
 	echo 'Options',PHP_EOL;
 	switch($subcommand){
 	//------------ GetRIPE, GetRIPEUpdate ------------//
-	case 'GetRIPE':
-	case 'GetRIPEUpdate':
+	case 'GetBGPFullRoute':
+	case 'GetBGPUpdate':
 	case 'ExtractPHPDataFromBGPScanner':
 		echo'  RC    : 取得するルートコレクタ',PHP_EOL,
 			'  START : 取得を開始する日時 ex. 20180101.0000',PHP_EOL,
@@ -182,34 +169,21 @@ catch(Exception $e){
 		echo'  START : 分析対象の日付',PHP_EOL,
 			'  END   : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL;
 		break;
-	//------------ FilterSuspiciousBGPUpdate ------------//
-	case 'FilterSuspiciousBGPUpdate':
-		break;
-	//------------ FilterSuspiciousBGPUpdateSummary ------------//
-	case 'FilterSuspiciousBGPUpdateSummary':
-	case 'MakeMOASCleaningList':
-		echo'  START      : 分析対象の日付',PHP_EOL,
-			'  END        : 複数の連続した日付のデータを分析する場合にその終了日を指定',PHP_EOL,
-			'  WHILTELIST : 利用するホワイトリスト，指定がなければmainを利用',PHP_EOL;
-		break;
-	//------------ AddWhoisToMOASCleaningList ------------//
-	case 'AddWhoisToMOASCleaningList':
-		echo'  FILENAME : 分析対象のファイルパス',PHP_EOL;
-		break;
 	//------------ CronBGPFullRoute/Update ------------//
 	case 'CronBGPFullRoute':
 	case 'CronBGPUpdate':
 		echo'  RC         : 取得するルートコレクタ',PHP_EOL;
 		break;
-
-	//------------ CronASCountry ------------//
-	case 'CronASCountry':
-		break;
-
 	//------------ ImpotSubmarineCableList ------------//
 	case 'ImpotSubmarineCableList':
 		echo'  <CABLE LIST> : SubmarineCableMapより取得したfusion-cables-(YmdHi).csv',PHP_EOL;
 		break;
+	//------------ 引数なしで実行可能 ------------//
+	case 'FilterSuspiciousBGPUpdate':
+	case 'CronFilterSuspiciousBGPUpdate':
+	case 'CronASCountry':
+		break;
+
 	}
 	exit(1);
 }
