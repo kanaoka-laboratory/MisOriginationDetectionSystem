@@ -70,7 +70,7 @@ function MakeFilenames($rc, $ts){
 	$filename['update_gz'] = "$dir/updates.$Ymd_Hi.gz";
 	// UpdateBGPScanner
 	$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_BGPSCANNER.$Y_m;
-	$filename['update_bgpscanner'] = "$dir/$Ymd_Hi.bgpscaner.txt";
+	$filename['update_bgpscanner'] = "$dir/$Ymd_Hi.bgpscanner.txt";
 
 	//------------ TrackOriginChangedPrefix ------------//
 	// Exact

@@ -1,4 +1,8 @@
 <?php
+// 設定ファイル読み込み
+require_once('config.php');
+// メンテナンス時は何もせず終了
+if(MODS_MAINTENANCE) exit("メンテナンスモードがONになっています".PHP_EOL);	
 // プログラムのカレントディレクトリを変更
 chdir(__DIR__);
 
@@ -35,8 +39,6 @@ if(!in_array("$subcommand.php", scandir('subcommand/'), true)){
 }
 
 //==================== 初期設定 ====================//
-// 設定ファイル読み込み
-require_once('config.php');
 // 関数などの読み込み
 foreach(glob('import/*.php') as $filename) require_once($filename);
 require_once("subcommand/$subcommand.php");
