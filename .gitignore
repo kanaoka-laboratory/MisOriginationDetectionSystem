@@ -1,4 +1,5 @@
 /data/*/*/*
+!data/Whitelist/**
 /log/*/*
 !.gitkeep
 .DS_Store
