@@ -338,8 +338,8 @@ CREATE TABLE `SuspiciousAsnSet` (
  `conflict_asn` varchar(191) NOT NULL COMMENT '衝突先AS',
  `asn_cc` char(2) NOT NULL COMMENT '国コード',
  `conflict_asn_cc` varchar(191) NOT NULL COMMENT '衝突先国コード',
- `asn_whois` varchar(191) NOT NULL,
- `conflict_asn_whois` varchar(191) NOT NULL,
+ `asn_whois` varchar(191) NOT NULL COMMENT 'whois情報',
+ `conflict_asn_whois` varchar(191) NOT NULL COMMENT '衝突先whois情報',
  `date_detection` datetime NOT NULL COMMENT '検知日時',
  PRIMARY KEY (`suspicious_id`),
  UNIQUE KEY `conflict_info` (`asn`,`conflict_asn`,`asn_cc`,`conflict_asn_cc`) USING BTREE,
@@ -378,10 +378,10 @@ CREATE TABLE `Whois` (
  `query` varchar(191) NOT NULL,
  `name` varchar(191) NOT NULL,
  `body` mediumtext NOT NULL,
- `date` datetime NOT NULL DEFAULT current_timestamp(),
+ `date_query` datetime NOT NULL DEFAULT current_timestamp(),
  PRIMARY KEY (`whois_id`),
- UNIQUE KEY `query` (`query`,`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT COMMENT='whois情報';
+ UNIQUE KEY `query` (`query`,`date_query`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='whois情報';
 
 
 

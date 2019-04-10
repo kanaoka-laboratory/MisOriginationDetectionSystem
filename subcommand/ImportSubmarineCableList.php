@@ -84,7 +84,6 @@ function ImportSubmarineCableList($filename){
 		}
 	}
 	fclose($fp);
-	var_dump($whitelist);
 }
 
 ?>
