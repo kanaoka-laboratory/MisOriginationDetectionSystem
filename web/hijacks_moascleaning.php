@@ -72,12 +72,11 @@ $page_html .= "</div>";
 
 	//------------ MOASCleaningListを取得 ------------//
 	$limit_from = ($page-1)*$item_per_page;
-	$limit_to = $page*$item_per_page;
 	$query = "select * from SuspiciousAsnSet as t1 left join ".
 			"(select suspicious_id, count(suspicious_id) as prefix_set_count, sum(count) as update_count, ip_prefix, conflict_ip_prefix ".
 			"from PrefixConflictedUpdate group by suspicious_id) as t2 ".
 			"on t1.suspicious_id=t2.suspicious_id ".
-			"where 0<conflict_type and conflict_type<100 order by t1.suspicious_id desc limit $limit_from, $limit_to";
+			"where 0<conflict_type and conflict_type<100 order by t1.suspicious_id desc limit $limit_from, $item_per_page";
 	$result = $mysqli->query($query);
 
 	//------------ 1行ずつ処理 ------------//
@@ -85,7 +84,7 @@ $page_html .= "</div>";
 		if($i%50===0) echo $th;
 		// 行を分割
 		echo ($row["conflict_type"]>=10? "<tr class='whitelist'>": "<tr>"),
-			"<td>", $row["conflict_type"],
+			"<td name='conflict_type'>", $row["conflict_type"],
 			"<td>", $row["ip_prefix"],
 			"<td>", $row["conflict_ip_prefix"],
 			"<td>", $row["asn"],
