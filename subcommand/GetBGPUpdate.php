@@ -20,11 +20,11 @@ function GetBGPUpdate($rc, $start, $end = null){
 			try{
 				// ファイルをDL
 				showLog('downloading: '.date('Y-m-d H:i',$ts)." ({$filename['update_url']})");
-				if(!downloadFile($filename['update_url'], $filename['update_gz'])) throw new Exception();
+				if(!downloadFile($filename['update_url'], $filename['update_dl'])) throw new Exception();
 
 				// DLに成功したらbgpscannerで展開
-				showLog("extracting mrt: {$filename['update_gz']} > {$filename['update_bgpscanner']}");
-				system("/usr/bin/bgpscanner -o {$filename['update_bgpscanner']} {$filename['update_gz']} 2>&1", $return_var);
+				showLog("extracting mrt: {$filename['update_dl']} > {$filename['update_bgpscanner']}");
+				system("/usr/bin/bgpscanner -o {$filename['update_bgpscanner']} {$filename['update_dl']} 2>&1", $return_var);
 				if($return_var!==0) throw new Exception();
 
 				// 終了

@@ -20,18 +20,18 @@ function GetBGPFullRoute($rc, $start, $end = null){
 			try{
 				// ファイルをDL
 				showLog('downloading: '.date('Y-m-d H:i',$ts)." ({$filename['fullroute_url']})");
-				if(!downloadFile($filename['fullroute_url'], $filename['fullroute_gz'])){
+				if(!downloadFile($filename['fullroute_url'], $filename['fullroute_dl'])){
 					// 一時的に1分戻す（$ts2）
 					$ts2 = $ts-60;
 					$filename2 = MakeFilenames($rc, $ts2);
 					// ファイルをDL
 					showLog('failed, retry: '.date('Y-m-d H:i',$ts2)." ({$filename2['fullroute_url']})");
-					if(!downloadFile($filename2['fullroute_url'], $filename['fullroute_gz'])) throw new Exception();
+					if(!downloadFile($filename2['fullroute_url'], $filename['fullroute_dl'])) throw new Exception();
 				}
 
 				// DLに成功したらbgpscannerで展開
-				showLog("extracting mrt: {$filename['fullroute_gz']} > {$filename['fullroute_bgpscanner']}");
-				system("/usr/bin/bgpscanner -o {$filename['fullroute_bgpscanner']} {$filename['fullroute_gz']} 2>&1", $return_var);
+				showLog("extracting mrt: {$filename['fullroute_dl']} > {$filename['fullroute_bgpscanner']}");
+				system("/usr/bin/bgpscanner -o {$filename['fullroute_bgpscanner']} {$filename['fullroute_dl']} 2>&1", $return_var);
 				if($return_var!==0) throw new Exception();
 
 				// ネットワークリストへの変換
