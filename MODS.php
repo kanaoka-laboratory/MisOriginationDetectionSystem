@@ -27,6 +27,7 @@ $subcommand_usage = array(
 	'CronFilterSuspiciousBGPUpdate'			=> 'CronFilterSuspiciousBGPUpdate [<RC>]                      : Cron実行用（ハイジャックの可能性があるASペアをホワイトリストを用いて分類）',
 	'CronASCountry'							=> 'CronASCountry                                             : Cron実行用（ASと国の紐付け）',
 	'ImportSubmarineCableList'				=> 'ImportSubmarineCableList <CABLE LIST>                     : SubmarineCableMapより取得したCSVから海底ケーブルで接続された国を探し，DBに登録する',
+	'ReApplyWhitelist'						=> 'ReApplyWhitelist [<SUSPICIOUS_ID>]                        : SuspiciousAsnSetに対してホワイトリストを再適用する',
 	'help'									=> 'help                                                      : このドキュメントを表示',
 );
 
@@ -124,6 +125,11 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0]);
 		break;
+	//------------ ReApplyWhitelist ------------//
+	case 'ReApplyWhitelist':
+		startLogging($subcommand);
+		$subcommand(isset($option[0])?$option[0]:null);
+		break;
 	}
 }
 //------------ コマンド毎の説明 ------------//
@@ -179,6 +185,10 @@ catch(Exception $e){
 	//------------ ImpotSubmarineCableList ------------//
 	case 'ImpotSubmarineCableList':
 		echo'  <CABLE LIST> : SubmarineCableMapより取得したfusion-cables-(YmdHi).csv',PHP_EOL;
+		break;
+	//------------ ReApplyWhitelist ------------//
+	case 'ReApplyWhitelist':
+		echo'  <SUSPICIOUS_ID> : 指定がある場合はSuspiciousAsnSetの該当idのみホワイトリストを再適用する',PHP_EOL;
 		break;
 	//------------ 引数なしで実行可能 ------------//
 	case 'FilterSuspiciousBGPUpdate':
