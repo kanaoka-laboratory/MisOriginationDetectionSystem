@@ -81,4 +81,22 @@ function getNetworkBroadcast($ip_prefix, $ip_proto = null){
 	return array($network, $broadcast);
 }
 
+//==================== SuspiciousAsnSetにホワイトリストを再適用する ====================//
+function ReApplyWhitelist($suspicious_id = null){
+	global $mysqli;
+
+	// ホワイトリストを再適用する行を取得
+	$where_condition = $suspicious_id!==null? "suspicious_id=".(int)$suspicious_id: "0<conflict_type and conflict_type<100";
+	$result = $mysqli->query("select suspicious_id,conflict_type,asn,conflict_asn from SuspiciousAsnSet where $where_condition");
+	
+	// 再適用していく
+	while($row = $result->fetch_assoc()){
+		// 更新がある場合はDBにupdateを投げる
+		$conflict_type = $mysqli->VerifyConflictAsnWhiteList($row["asn"], $row["conflict_asn"]);
+		if($conflict_type===null) $conflict_type = CONFLICT_TYPE_SUSPICIOUS;
+		if($conflict_type!==$row["conflict_type"])
+			$mysqli->query("update SuspiciousAsnSet set conflict_type=$conflict_type where suspicious_id={$row["suspicious_id"]}");
+	}
+}
+
 ?>

@@ -45,29 +45,40 @@ function MakeFilenames($rc, $ts){
 	$Y_m = date('Y.m', $ts);
 	$Ymd_Hi = date('Ymd.Hi', $ts);
 
+	$dirs = array();
 	$filename = array();
 	// url
 	if($rc==='ripe_rc00'){
+		//------------ URL ------------//
 		$filename['fullroute_url'] = "http://data.ris.ripe.net/rrc00/$Y_m/bview.$Ymd_Hi.gz";
 		$filename['update_url']    = "http://data.ris.ripe.net/rrc00/$Y_m/updates.$Ymd_Hi.gz";
+		//------------ BGP Route ------------//
+		// FullRouteDL
+		$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_DL.$Y;
+		$filename['fullroute_dl'] = "$dir/bview.$Ymd_Hi.gz";
+		// UpadteDL
+		$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_DL.$Y_m;
+		$filename['update_dl'] = "$dir/updates.$Ymd_Hi.gz";
 	}elseif($rc === 'routeview_oregon'){
-		$filename['fullroute_url'] = "http://archive.routeviews.org/bgpdata/$Y_m/RIBS/rib.$Ymd_Hi.gz";
-		$filename['update_url']    = "http://archive.routeviews.org/bgpdata/$Y_m/UPDATES/updates.$Ymd_Hi.gz";
+		//------------ URL ------------//
+		$filename['fullroute_url'] = "http://archive.routeviews.org/bgpdata/$Y_m/RIBS/rib.$Ymd_Hi.bz2";
+		$filename['update_url']    = "http://archive.routeviews.org/bgpdata/$Y_m/UPDATES/updates.$Ymd_Hi.bz2";
+		//------------ BGP Route ------------//
+		// FullRouteDL
+		$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_DL.$Y;
+		$filename['fullroute_dl'] = "$dir/rib.$Ymd_Hi.bz2";
+		// UpadteDL
+		$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_DL.$Y_m;
+		$filename['update_dl'] = "$dir/updates.$Ymd_Hi.bz2";
 	}
 	
 	//------------ BGP Route ------------//
-	// FullRouteGZ
-	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_GZ.$Y;
-	$filename['fullroute_gz'] = "$dir/bview.$Ymd_Hi.gz";
 	// FullRouteBGPScanner
 	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_BGPSCANNER.$Y;
 	$filename['fullroute_bgpscanner'] = "$dir/$Ymd_Hi.bgpscanner.txt";
 	// FullRoutePHPData
 	$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_PHPDATA.$Y;
 	$filename['fullroute_phpdata'] = "$dir/$Ymd_Hi.dat";
-	// UpadteGZ
-	$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_GZ.$Y_m;
-	$filename['update_gz'] = "$dir/updates.$Ymd_Hi.gz";
 	// UpdateBGPScanner
 	$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_BGPSCANNER.$Y_m;
 	$filename['update_bgpscanner'] = "$dir/$Ymd_Hi.bgpscanner.txt";

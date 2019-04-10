@@ -13,35 +13,53 @@ $mysqli = new mymysqli();
 
 // jsonとして出力する
 header('content-type: application/json; charset=utf-8');
-$json = array('error', false);
+$json = array('error'=>false);
 
-// asnを変換
-$asn = isset($_POST['asn'])? (int)$_POST['asn']: 0;
-$conf_asn = isset($_POST['conf_asn'])? (int)$_POST['conf_asn']: 0;
-$whitelist = isset($_POST['whitelist'])? (int)$_POST['whitelist']: null;
-$two_way = isset($_POST['two_way'])? (boolean)$_POST['two_way']: false;
-// 値が不正
-if($asn===0 || $conf_asn===0) exit(json_encode(array('error','invalid asn value')));
-if($whitelist===null) exit(json_encode(array('error', 'invalid whitelist type')));
-// 入力値をjsonに保存
-$json['asn'] = $asn;
-$json['conf_asn'] = $conf_asn;
-$json['whitelist'] = $whitelist;
-$json['two_way'] = $two_way;
+try{
+	// asn
+	if(!isset($_POST['asn'])) throw new Exception("asn not set");
+	$asn = (int)$_POST['asn'];
+	// conf_asn
+	if(!isset($_POST['conf_asn'])) throw new Exception("conf_asn not set");
+	if(is_array($_POST["conf_asn"])) $conf_asn_list = $_POST['conf_asn'];
+	else $conf_asn_list = array($_POST['conf_asn']);
+	// conflict_type
+	if(!isset($_POST['conflict_type'])) throw new Exception("conflict_type not set");
+	$conflict_type = (int)$_POST['conflict_type'];
+	// two_way（'true', 'false', '0', '1'あたりの値で受け取る）
+	$two_way = false;
+	if(isset($_POST["two_way"]) && $_POST["two_way"]!=="false")
+		$two_way = (boolean)$_POST['two_way'];
 
-// ホワイトリストに追加
-if($whitelist>=10){
-	$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($whitelist,$asn,$conf_asn)";
-	if($two_way) $query.=",($whitelist,$conf_asn,$asn)";
-}// ホワイトリストの無効化
-else{
-	$query = "update ConflictAsnWhiteList set disabled=current_timestamp where asn=$asn and conflict_asn=$conf_asn";
-	if($two_way) $query.=" or asn=$conf_asn and conflict_asn=$asn";
+	// 入力値をjsonに保存
+	$json['asn'] = $asn;
+	$json['conf_asn'] = $conf_asn;
+	$json['conflict_type'] = $conflict_type;
+	$json['two_way'] = $two_way;
+	$json['query'] = "";
+
+	// conf_asn全てに対してforeach
+	foreach($conf_asn_list as $conf_asn){
+		// ホワイトリストに追加
+		if($conflict_type>=10){
+			$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($conflict_type,$asn,$conf_asn)";
+			if($two_way) $query.=",($conflict_type,$conf_asn,$asn)";
+		}// ホワイトリストの無効化
+		else{
+			$query = "update ConflictAsnWhiteList set disabled=current_timestamp where asn=$asn and conflict_asn=$conf_asn";
+			if($two_way) $query.=" or asn=$conf_asn and conflict_asn=$asn";
+		}
+		$mysqli->query($query);
+		$json['query'] .= $query.PHP_EOL;
+	}
+
+	if($mysqli->error) throw new Exception($mysqli->error);
+
+	// ホワイトリストを再適用（suspicious_idがあるときは指定）
+	ReApplyWhitelist(isset($_POST["suspicious_id"])?(int)$_POST["suspicious_id"]:null);
+}catch(Exception $e){
+	$json['error'] = $e->getMessage();
 }
-$json['query'] = $query;
-$mysqli->query($query);
-
-if($mysqli->error) $json['error'] = $mysqli->error;
 
 // $json['error'] = 'debug';
 echo json_encode($json);

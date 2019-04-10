@@ -1,0 +1,14 @@
+table#hijack_list{
+	table-layout: fixed;
+	width: 0;
+	font-size: small;
+	border-collapse: collapse;
+	border: solid 1px black;
+}
+
+table#hijack_list th{ font-weight: bold; border: solid 1px black; }
+table#hijack_list td{ border: solid 1px black; position: relative; }
+
+table#hijack_list tr.whitelist{ background-color: silver; }
+table#hijack_list tr:hover{ background-color: #eee; }
+table#hijack_list tr td:nth-child(n+11){ text-align: right; }

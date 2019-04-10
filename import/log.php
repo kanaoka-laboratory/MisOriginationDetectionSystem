@@ -22,6 +22,8 @@ function startLogging($subcommand){
 // 'Y/m/d_H:i:s[spent_time] message
 function showLog($message, $is_error = false){
 	global $log__start_time, $log__fp;
+	// ログファイルがない（webとか）場合は何もしない
+	if($log__fp===null) return;
 	// 経過時間を計算
 	$spent_time = time()-$log__start_time;
 	$hour = str_pad((int)($spent_time/3600), 2, '0', STR_PAD_LEFT);
