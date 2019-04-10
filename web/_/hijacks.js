@@ -58,29 +58,7 @@ function EditWhitelistAjax(param, tr_ele){
 		else{
 			if(data.conflict_type>=10)	$(tr_ele).addClass('whitelist');
 			else						$(tr_ele).removeClass('whitelist');
-		}
-	};
-	console.log(param);
-	// ajax実行
-	$.ajax({
-		url: 'edit_whitelist.php',
-		type: 'post',
-		dataType: 'json',
-		data: param,
-		timeout: 2000,
-	}).then(json_success, json_error);
-}
-
-// Ajaxでホワイトリストの登録を行う（複数）
-function EditWhitelistAjaxMultiple(param, tr_ele){
-	// ajax失敗時の処理
-	var json_error = function(){ alert('処理失敗，リトライしてください'); };
-	// ajax成功時の処理
-	var json_success = function(data){
-		if(data.error){ json_error(); }
-		else{
-			if(data.conflict_type>=10)	$(tr_ele).addClass('whitelist');
-			else						$(tr_ele).removeClass('whitelist');
+			$(tr_ele).children('td[name=conflict_type]').text(data.conflict_type);
 		}
 	};
 	console.log(param);
