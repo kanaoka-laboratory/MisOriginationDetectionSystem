@@ -72,6 +72,7 @@ function QueryWhoisAS($asn){
 		fclose($fp);
 		// 改行の削除，文字コードの変換
 		$fulltext = mb_convert_encoding(str_replace(array("\r\n","\r"),"\n", $fulltext), "UTF-8", "ASCII, UTF-8, ISO-8859-1");
+		echo $fulltext;
 		//------------ fulltextからnameを取得 ------------//
 		switch($rir) {
 		// apnic
@@ -119,13 +120,13 @@ function QueryWhoisAS($asn){
 		case 'lacnic':
 			// "% (RIR) resource: whois.(rir).net" この記述でどこのrirかわかる
 			// 上記の記述なし：どこのRIRかわからないのでarinに投げる
-			if(!preg_match('/^% (APNIC|ARIN|RIPENCC|LACNIC|AFRINIC) resource: whois\.(apnic|arin|ripe|lacnic|afrinic)\.net$/m', $fulltext, $m)){
+			if(!preg_match('/^% (APNIC|ARIN|RIPENCC|LACNIC|AFRINIC|Brazilian) resource: whois\.(apnic|arin|ripe|lacnic|afrinic|registro)\.(net|br)$/m', $fulltext, $m)){
 				$rir = 'arin';
 				break;
 			}
 			// lacnic以外のRIR
-			if($m[2]!=='lacnic'){
-				$rir = $m[2];
+			if($m[1]!=='LACNIC' && $m[1]!=='Brazilian'){
+				$rir = "lacnic";
 				break;
 			}// 結果が帰ってきた
 			else{
