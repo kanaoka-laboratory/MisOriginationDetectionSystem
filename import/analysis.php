@@ -97,6 +97,15 @@ function ReApplyWhitelist($suspicious_id = null){
 		if($conflict_type!==$row["conflict_type"])
 			$mysqli->query("update SuspiciousAsnSet set conflict_type=$conflict_type where suspicious_id={$row["suspicious_id"]}");
 	}
+
+	// 全体への再適用の場合は[ASX,0]を探して[ASX,ASY][ASX,ASZ]を削除する
+	if($suspicious_id===null){
+		$result = $mysqli->query("select conflict_type,asn from ConflictAsnWhiteList where conflict_asn=0");
+		while($row = $result->fetch_assoc()){
+			// 重複するデータを削除する
+			$mysqli->query("delete from ConflictAsnWhiteList where asn={$row["asn"]} and conflict_asn!=0 and disabled is null and conflict_type={$row["conflict_type"]}");
+		}
+	}
 }
 
 ?>

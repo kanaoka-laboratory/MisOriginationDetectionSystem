@@ -48,7 +48,8 @@ function MakeFilenames($rc, $ts){
 	$dirs = array();
 	$filename = array();
 	// url
-	if($rc==='ripe_rc00'){
+	switch ($rc){
+	case 'ripe_rc00':
 		//------------ URL ------------//
 		$filename['fullroute_url'] = "http://data.ris.ripe.net/rrc00/$Y_m/bview.$Ymd_Hi.gz";
 		$filename['update_url']    = "http://data.ris.ripe.net/rrc00/$Y_m/updates.$Ymd_Hi.gz";
@@ -59,7 +60,20 @@ function MakeFilenames($rc, $ts){
 		// UpadteDL
 		$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_DL.$Y_m;
 		$filename['update_dl'] = "$dir/updates.$Ymd_Hi.gz";
-	}elseif($rc === 'routeview_oregon'){
+		break;
+	case 'ripe_rc01':
+		//------------ URL ------------//
+		$filename['fullroute_url'] = "http://data.ris.ripe.net/rrc01/$Y_m/bview.$Ymd_Hi.gz";
+		$filename['update_url']    = "http://data.ris.ripe.net/rrc01/$Y_m/updates.$Ymd_Hi.gz";
+		//------------ BGP Route ------------//
+		// FullRouteDL
+		$dirs[] = $dir = DIR_RC[$rc].BGP_FULLROUTE_DL.$Y;
+		$filename['fullroute_dl'] = "$dir/bview.$Ymd_Hi.gz";
+		// UpadteDL
+		$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_DL.$Y_m;
+		$filename['update_dl'] = "$dir/updates.$Ymd_Hi.gz";
+		break;
+	case 'routeview_oregon':
 		//------------ URL ------------//
 		$filename['fullroute_url'] = "http://archive.routeviews.org/bgpdata/$Y_m/RIBS/rib.$Ymd_Hi.bz2";
 		$filename['update_url']    = "http://archive.routeviews.org/bgpdata/$Y_m/UPDATES/updates.$Ymd_Hi.bz2";
@@ -70,6 +84,7 @@ function MakeFilenames($rc, $ts){
 		// UpadteDL
 		$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_DL.$Y_m;
 		$filename['update_dl'] = "$dir/updates.$Ymd_Hi.bz2";
+		break;
 	}
 	
 	//------------ BGP Route ------------//
