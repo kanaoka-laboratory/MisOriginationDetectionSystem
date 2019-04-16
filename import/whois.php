@@ -64,7 +64,7 @@ function QueryWhoisAS($asn){
 		//------------ リクエストを送り，結果（fulltext）を取得 ------------//
 		$fulltext = '';
 		$host = "whois.$rir.net";
-		$fp = fsockopen($whois_host, 43);
+		$fp = fsockopen($host, 43);
 		// arinとそれ以外ではクエリの方法が違う
 		$query = $rir==="arin"? "a $asn": "as$asn";
 		fwrite($fp, $query.PHP_EOL);
