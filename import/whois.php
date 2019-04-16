@@ -34,6 +34,9 @@ function GetWhoisAS($asn, $date = "now"){
 	return QueryWhoisAS($asn);	
 }
 
+//==================== AS番号からwhois情報の取得 ====================//
+// asn: 検索するAS番号
+// 返り値: DBの構造をした配列（今のとこ whois_id, host, query, name, body, date）
 function QueryWhoisAS($asn){
 	// 引数チェック
 	if(preg_match('/^(AS|as)?([0-9]+)$/', $asn, $m)) $asn = (int)$m[2];
@@ -60,14 +63,15 @@ function QueryWhoisAS($asn){
 	for($i=0; $i<3; $i++){
 		//------------ リクエストを送り，結果（fulltext）を取得 ------------//
 		$fulltext = '';
-		$fp = fsockopen("whois.$rir.net", 43);
+		$host = "whois.$rir.net";
+		$fp = fsockopen($whois_host, 43);
 		// arinとそれ以外ではクエリの方法が違う
-		if($rir==='arin') fwrite($fp, "a $asn".PHP_EOL);	
-		else fwrite($fp, "as$asn".PHP_EOL);
+		$query = $rir==="arin"? "a $asn": "as$asn";
+		fwrite($fp, $query.PHP_EOL);
 		while(!feof($fp)) $fulltext .= fgets($fp, 128);
+		fclose($fp);
 		// 改行の削除，文字コードの変換
 		$fulltext = mb_convert_encoding(str_replace(array("\r\n","\r"),"\n", $fulltext), "UTF-8", "ASCII, UTF-8, ISO-8859-1");
-		fclose($fp);
 		//------------ fulltextからnameを取得 ------------//
 		switch($rir) {
 		// apnic
@@ -152,7 +156,7 @@ function QueryWhoisAS($asn){
 	//------------ mysqlに登録 ------------//
 	// エスケープ前のデータ保存
 	$date = (new DateTime("now", new DateTimeZone("UTC")))->format("Y-m-d H:i:s");
-	$whois = array(	"host"		=> "whois.$rir.net",
+	$whois = array(	"host"		=> "$host",
 					"query"		=> "as$asn",
 					"name"		=> $name,
 					"body"		=> $fulltext,
@@ -161,7 +165,7 @@ function QueryWhoisAS($asn){
 	$name = $mysqli->real_escape_string($name);
 	$fulltext = $mysqli->real_escape_string($fulltext);
 	// SQL実行
-	$mysqli->query("insert into Whois (host, query, name, body, date_query) values ('whois.$rir.net', 'as$asn', '$name', '$fulltext', '$date')");
+	$mysqli->query("insert into Whois (host, query, name, body, date_query) values ('$host', 'as$asn', '$name', '$fulltext', '$date')");
 	if($mysqli->errno===0){
 		$whois["whois_id"] = $mysqli->insert_id;
 		return $whois;

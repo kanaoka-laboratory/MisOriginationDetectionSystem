@@ -61,7 +61,7 @@ function EditWhitelistAjax(param, tr_ele){
 			$(tr_ele).children('td[name=conflict_type]').text(data.conflict_type);
 		}
 	};
-	console.log(param);
+	// console.log(param);
 	// ajax実行
 	$.ajax({
 		url: 'edit_whitelist.php',

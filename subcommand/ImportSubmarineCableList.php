@@ -36,6 +36,10 @@ function ImportSubmarineCableList($filename){
 			// 最終要素が国名でない場合への対処（ex: "Korea, Rep."）
 			if(strpos($country_name, " REP.")!==false)
 				$country_name = array_pop($landing_point).",".$country_name;
+			// 中国/香港/マカオの表記ゆれ
+			elseif($country_name===" China" && array_pop($landing_point)===" Hong Kong")
+				$country_name = "Hong Kong";
+			
 			// 空白の除去
 			$country_name = ltrim($country_name);
 			
