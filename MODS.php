@@ -27,6 +27,7 @@ $subcommand_usage = array(
 	'CronFilterSuspiciousBGPUpdate'			=> 'CronFilterSuspiciousBGPUpdate [<RC>]                      : Cron実行用（ハイジャックの可能性があるASペアをホワイトリストを用いて分類）',
 	'CronASCountry'							=> 'CronASCountry                                             : Cron実行用（ASと国の紐付け）',
 	'ImportSubmarineCableList'				=> 'ImportSubmarineCableList <CABLE LIST>                     : SubmarineCableMapより取得したCSVから海底ケーブルで接続された国を探し，DBに登録する',
+	'GetWhoisInfoFromAsn'					=> 'GetWhoisInfoFromAsn <ASN>                        : SuspiciousAsnSetに対してホワイトリストを再適用する',
 	'ReApplyWhitelist'						=> 'ReApplyWhitelist [<SUSPICIOUS_ID>]                        : SuspiciousAsnSetに対してホワイトリストを再適用する',
 	'help'									=> 'help                                                      : このドキュメントを表示',
 );
@@ -125,6 +126,12 @@ try{
 		startLogging($subcommand);
 		$subcommand($option[0]);
 		break;
+	//------------ GetWhoisInfoFromAsn ------------//
+	case 'GetWhoisInfoFromAsn':
+		if(!isset($option[0])) throw new Exception();
+		startLogging($subcommand);
+		$subcommand($option[0]);
+		break;
 	//------------ ReApplyWhitelist ------------//
 	case 'ReApplyWhitelist':
 		startLogging($subcommand);
@@ -185,6 +192,10 @@ catch(Exception $e){
 	//------------ ImpotSubmarineCableList ------------//
 	case 'ImpotSubmarineCableList':
 		echo'  <CABLE LIST> : SubmarineCableMapより取得したfusion-cables-(YmdHi).csv',PHP_EOL;
+		break;
+	//------------ GetWhoisInfoFromAsn ------------//
+	case 'GetWhoisInfoFromAsn':
+		echo'  <ASN> : Whois情報を取得するAS番号',PHP_EOL;
 		break;
 	//------------ ReApplyWhitelist ------------//
 	case 'ReApplyWhitelist':
