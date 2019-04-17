@@ -73,7 +73,7 @@ function MakeFilenames($rc, $ts){
 		$dirs[] = $dir = DIR_RC[$rc].BGP_UPDATE_DL.$Y_m;
 		$filename['update_dl'] = "$dir/updates.$Ymd_Hi.gz";
 		break;
-	case 'routeview_oregon':
+	case 'routeviews_oregon':
 		//------------ URL ------------//
 		$filename['fullroute_url'] = "http://archive.routeviews.org/bgpdata/$Y_m/RIBS/rib.$Ymd_Hi.bz2";
 		$filename['update_url']    = "http://archive.routeviews.org/bgpdata/$Y_m/UPDATES/updates.$Ymd_Hi.bz2";
