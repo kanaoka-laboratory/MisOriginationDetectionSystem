@@ -72,7 +72,6 @@ function QueryWhoisAS($asn){
 		fclose($fp);
 		// 改行の削除，文字コードの変換
 		$fulltext = mb_convert_encoding(str_replace(array("\r\n","\r"),"\n", $fulltext), "UTF-8", "ASCII, UTF-8, ISO-8859-1");
-		echo $fulltext;
 		//------------ fulltextからnameを取得 ------------//
 		switch($rir) {
 		// apnic
