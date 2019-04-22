@@ -16,7 +16,7 @@ function CronBGPUpdate($rc){
 	$date_completed = $cron["value2"];
 	
 	//------------ 実行準備 ------------//
-	$ts_download = strtotime("$date_extracted +5 minutes");
+	$ts_download = strtotime("$date_extracted +".UPDATE_INTERVAL[$rc]." minutes");
 	$date = date("Y-m-d H:i", $ts_download);
 	// $dateが今より未来なら終了
 	if(time() < strtotime("$date UTC")) showLog("$rc: まだ次のフルルートがダンプされる時間ではありません", true);
@@ -34,7 +34,7 @@ function CronBGPUpdate($rc){
 		showLog("$rc: DL，bgpdump抽出完了");
 		//------------ 変更検出 ------------//
 		// 変更検出を行うoldestなタイムスタンプを取得
-		$ts = strtotime("$date_completed +5 minutes");
+		$ts = strtotime("$date_completed +".UPDATE_INTERVAL[$rc]." minutes");
 		$ts_max = $ts_download;
 		// 展開が終わってるlatestのフルルートの時間から$ts_maxを取得
 		$row = $mysqli->query("select value2 from CronProgress where cron='BGPFullRoute' and name='$rc'")->fetch_assoc();
