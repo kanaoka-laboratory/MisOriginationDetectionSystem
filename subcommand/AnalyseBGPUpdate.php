@@ -21,7 +21,7 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 	$network_list = unserialize(file_get_contents($fullroute_filename));
 	
 	// 5分ごとに時間をずらしながら実行
-	for(; $ts<=$ts_end; $ts+=60*5){
+	for(; $ts<=$ts_end; $ts+=UPDATE_INTERVAL[$rc]*60){
 		// 事件対象となるフルルートのデータが変わる場合（$tsとフルルートのタイムスタンプが一致する）
 		if(in_array(date('Hi',$ts), ['0000','0800','1600'], true)){
 			$fullroute_filename = MakeFilenames($rc, $ts)['fullroute_phpdata'];

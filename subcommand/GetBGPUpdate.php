@@ -35,7 +35,7 @@ function GetBGPUpdate($rc, $start, $end = null){
 				if($failed_count===3) $error[] = date('Y-m-d H:i', $ts);
 			}
 		}
-		$ts += 60*5;
+		$ts += UPDATE_INTERVAL[$rc]*60;
 	}
 
 	// 失敗した日付のリストを返す

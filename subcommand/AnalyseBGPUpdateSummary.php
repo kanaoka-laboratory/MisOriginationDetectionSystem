@@ -14,7 +14,7 @@ function AnalyseBGPUpdateSummary($rc, $start, $end=null){
 	$fp = fopen($filename, 'w');
 	// タイトル行の出力
 	fwrite($fp, 'date,type1,type2,type3,type4,type5'.PHP_EOL);
-	for(; $ts<=$ts_end; $ts+=60*5){
+	for(; $ts<=$ts_end; $ts+=UPDATE_INTERVAL[$rc]*60){
 		// それぞれのtypeのカウント用配列
 		$count = array(1=>0, 2=>0, 3=>0, 4=>0, 5=>0);
 		// ファイルオープン
