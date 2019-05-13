@@ -40,8 +40,8 @@ try{
 
 	// conf_asn全てに対してforeach
 	foreach($conf_asn_list as $conf_asn){
-		// ホワイトリストに追加（ASを完全に信頼: AKAMAI，US_DoD，DDoS軽減）
-		if(in_array($conflict_type, array(12,13,15), true)){
+		// ホワイトリストに追加（ASを完全に信頼/危険視: AKAMAI，US_DoD，DDoS軽減，非存在AS）
+		if(in_array($conflict_type, array(12,13,15,53), true)){
 			$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($conflict_type,$asn,0)";
 		}// ホワイトリストに追加
 		elseif($conflict_type>1){
