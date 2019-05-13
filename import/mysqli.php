@@ -73,9 +73,9 @@ class mymysqli extends mysqli{
 		$result =  $this->query("select conflict_type from ConflictAsnWhiteList where asn=0 and conflict_asn='$conflict_asn' and disabled is null");
 		if($result->num_rows>0) return $result->fetch_assoc()['conflict_type'];
 		// DDoS軽減の逆を確認
-		$result =  $this->query("select conflict_type from ConflictAsnWhiteList where asn=$conflict_asn and conflict_asn='$asn' and disabled is null");
-		if($result->num_rows>0 && $result->fetch_assoc()['conflict_type']==CONFLICT_TYPE_WHITELIST_DDOS_MITIGATION)
-			return CONFLICT_TYPE_WHITELIST_DDOS_MITIGATION_CLIENT;
+		if(ctype_digit($conflict_asn))
+		$result =  $this->query("select count(*) from SuspiciousAsnSet where asn=$conflict_asn and conflict_asn='$asn' and conflict_type=".CONFLICT_TYPE_WHITELIST_DDOS_MITIGATION);
+		if($result->num_rows>0) return CONFLICT_TYPE_WHITELIST_DDOS_MITIGATION_CLIENT;
 		return null;
 	}
 }
