@@ -40,12 +40,15 @@ try{
 
 	// conf_asn全てに対してforeach
 	foreach($conf_asn_list as $conf_asn){
-		// ホワイトリストに追加
-		if($conflict_type>=10){
+		// ホワイトリストに追加（ASを完全に信頼: AKAMAI，US_DoD，DDoS軽減）
+		if(in_array($conflict_type, array(12,13,15), true)){
+			$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($conflict_type,$asn,0)";
+		}// ホワイトリストに追加
+		elseif($conflict_type>=10){
 			$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($conflict_type,$asn,$conf_asn)";
 			if($two_way) $query.=",($conflict_type,$conf_asn,$asn)";
 		}// ホワイトリストの無効化
-		else{
+		elseif($conflict_type==1){
 			$query = "update ConflictAsnWhiteList set disabled=current_timestamp where asn=$asn and conflict_asn=$conf_asn";
 			if($two_way) $query.=" or asn=$conf_asn and conflict_asn=$asn";
 		}

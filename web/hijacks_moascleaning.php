@@ -45,17 +45,12 @@ $page_html .= "</div>";
 <h1>Title</h1>
 <!-- main-body -->
 <div class="main-body">
-<p>	whitelist：<br>
-	10: その他<br>
-	11: 同じ組織<br>
-	12: Akamai<br>
-	13: US_DoD</p>
-
 <?=$page_html?>
 <table id="hijack_list">
 	<?php
 	//------------ th行作成 ------------//
 	$th = "<tr class='whitelist'>".
+		"<th style='width:40px;'>#".
 		"<th style='width:40px;'>conf<br>_type".
 		"<th style='width:160px;'>ip_prefix".
 		"<th style='width:160px;'>conf_ip_prefix".
@@ -68,7 +63,7 @@ $page_html .= "</div>";
 		"<th style='width:130px;'>date_detection".
 		"<th style='width:65px;'>prefix_set<br>_count".
 		"<th style='width:65px;'>update<br>_count".
-		"<th style='width:150px;'>whitelist";
+		"<th style='width:164px;'>whitelist";
 
 	//------------ MOASCleaningListを取得 ------------//
 	$limit_from = ($page-1)*$item_per_page;
@@ -76,7 +71,7 @@ $page_html .= "</div>";
 			"(select suspicious_id, count(suspicious_id) as prefix_set_count, sum(count) as update_count, ip_prefix, conflict_ip_prefix ".
 			"from PrefixConflictedUpdate group by suspicious_id) as t2 ".
 			"on t1.suspicious_id=t2.suspicious_id ".
-			"where 0<conflict_type and conflict_type<100 order by t1.suspicious_id desc limit $limit_from, $item_per_page";
+			"where 0<conflict_type and conflict_type<100 order by prefix_set_count desc limit $limit_from, $item_per_page";
 	$result = $mysqli->query($query);
 
 	//------------ 1行ずつ処理 ------------//
@@ -84,6 +79,7 @@ $page_html .= "</div>";
 		if($i%50===0) echo $th;
 		// 行を分割
 		echo ($row["conflict_type"]>=10? "<tr class='whitelist'>": "<tr>"),
+			"<td>", $row["suspicious_id"],
 			"<td name='conflict_type'>", $row["conflict_type"],
 			"<td>", $row["ip_prefix"],
 			"<td>", $row["conflict_ip_prefix"],
@@ -99,9 +95,12 @@ $page_html .= "</div>";
 			"<td data-id='{$row["suspicious_id"]}' data-asn='{$row["asn"]}' data-conf_asn='{$row["conflict_asn"]}'>".
 				"<select>".
 					"<option value='10'>10:その他<option value='11'>11:同一組織<option value='12'>12:Akamai".
-					"<option value='13'>13:US DoD<option value='14'>14:(Empty)<option value='15'>15:(Empty)".
-					"<option value='16'>16:(Empty)<option value='17'>17:(Empty)<option value='18'>18:(Empty)".
-					"<option value='1'>1:suspicious".
+					"<option value='13'>13:US DoD<option value='14'>14:近隣AS<option value='15'>15:DDoS軽減".
+					"<option value='16'>16:DDoS軽減[逆]<option value='17'>17:友好AS<option value='18'>18:(Empty)".
+					"<option value='19'>19:(Empty)<option value='20'>20:大学Project<option value='0'>----------------".
+					"<option value='50'>50:malicious<option value='51'>51:IANA予約<option value='52'>52:4bitAS番号".
+					"<option value='53'>53:(Empty)<option value='54'>54:(Empty)<option value='55'>55:(Empty)".
+					"<option value='0'>----------------<option value='1'>1:suspicious".
 				"</select><input class='add_whitelist' type='button' value='追加'>";
 	}
 
