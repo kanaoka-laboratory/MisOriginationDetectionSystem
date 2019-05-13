@@ -44,7 +44,7 @@ try{
 		if(in_array($conflict_type, array(12,13,15), true)){
 			$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($conflict_type,$asn,0)";
 		}// ホワイトリストに追加
-		elseif($conflict_type>=10){
+		elseif($conflict_type>1){
 			$query = "insert into ConflictAsnWhiteList (conflict_type,asn,conflict_asn) values ($conflict_type,$asn,$conf_asn)";
 			if($two_way) $query.=",($conflict_type,$conf_asn,$asn)";
 		}// ホワイトリストの無効化
