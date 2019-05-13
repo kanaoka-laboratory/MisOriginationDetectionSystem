@@ -9,6 +9,9 @@ table#hijack_list{
 table#hijack_list th{ font-weight: bold; border: solid 1px black; }
 table#hijack_list td{ border: solid 1px black; position: relative; }
 
-table#hijack_list tr.whitelist{ background-color: silver; }
-table#hijack_list tr:hover{ background-color: #eee; }
+table#hijack_list tr.whitelist{ color: gray; background-color: silver; }
+table#hijack_list tr.blacklist{ color: white; background-color: #c00; }
+table#hijack_list tr.blacklist td{ border-color: white; }
+table#hijack_list tr.suspicious_checked { color: black; background-color: pink; }
+table#hijack_list tr:hover{ color: black; background-color: #eee; }
 table#hijack_list tr td:nth-child(n+11){ text-align: right; }

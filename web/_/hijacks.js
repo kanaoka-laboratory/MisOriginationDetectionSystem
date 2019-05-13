@@ -56,8 +56,10 @@ function EditWhitelistAjax(param, tr_ele){
 	var json_success = function(data){
 		if(data.error){ json_error(); }
 		else{
-			if(data.conflict_type>=10)	$(tr_ele).addClass('whitelist');
-			else						$(tr_ele).removeClass('whitelist');
+			if(data.conflict_type>=50)	$(tr_ele).removeClass().addClass('blacklist');
+			else if(data.conflict_type>=10)	$(tr_ele).removeClass().addClass('whitelist');
+			else if(data.conflict_type==2)	$(tr_ele).removeClass().addClass('suspicious_checked');
+			else						$(tr_ele).removeClass().addClass('suspicious');
 			$(tr_ele).children('td[name=conflict_type]').text(data.conflict_type);
 		}
 	};

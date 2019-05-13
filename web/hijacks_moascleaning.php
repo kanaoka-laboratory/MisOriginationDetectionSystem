@@ -63,7 +63,7 @@ $page_html .= "</div>";
 		"<th style='width:130px;'>date_detection".
 		"<th style='width:65px;'>prefix_set<br>_count".
 		"<th style='width:65px;'>update<br>_count".
-		"<th style='width:164px;'>whitelist";
+		"<th style='width:195px;'>whitelist";
 
 	//------------ MOASCleaningListを取得 ------------//
 	$limit_from = ($page-1)*$item_per_page;
@@ -78,8 +78,11 @@ $page_html .= "</div>";
 	for($i=0;$row = $result->fetch_assoc();$i++){
 		if($i%50===0) echo $th;
 		// 行を分割
-		echo ($row["conflict_type"]>=10? "<tr class='whitelist'>": "<tr>"),
-			"<td>", $row["suspicious_id"],
+		if($row["conflict_type"]>=50) echo "<tr class='blacklist'>";
+		elseif($row["conflict_type"]>=10) echo "<tr class='whitelist'>";
+		elseif($row["conflict_type"]==2) echo "<tr class='suspicious_checked'>";
+		else echo "<tr class='suspicious'>";
+		echo "<td>", $row["suspicious_id"],
 			"<td name='conflict_type'>", $row["conflict_type"],
 			"<td>", $row["ip_prefix"],
 			"<td>", $row["conflict_ip_prefix"],
@@ -95,12 +98,12 @@ $page_html .= "</div>";
 			"<td data-id='{$row["suspicious_id"]}' data-asn='{$row["asn"]}' data-conf_asn='{$row["conflict_asn"]}'>".
 				"<select>".
 					"<option value='10'>10:その他<option value='11'>11:同一組織<option value='12'>12:Akamai".
-					"<option value='13'>13:US DoD<option value='14'>14:近隣AS<option value='15'>15:DDoS軽減".
-					"<option value='16'>16:DDoS軽減[逆]<option value='17'>17:友好AS<option value='18'>18:(Empty)".
+					"<option value='13'>13:US DoD<option value='14'>14:近隣AS<option value='15'>15:DDoS軽減提供AS".
+					"<option value='16'>16:DDoS軽減利用AS<option value='17'>17:友好AS<option value='18'>18:(Empty)".
 					"<option value='19'>19:(Empty)<option value='20'>20:大学Project<option value='0'>----------------".
 					"<option value='50'>50:malicious<option value='51'>51:IANA予約<option value='52'>52:4bitAS番号".
 					"<option value='53'>53:(Empty)<option value='54'>54:(Empty)<option value='55'>55:(Empty)".
-					"<option value='0'>----------------<option value='1'>1:suspicious".
+					"<option value='0'>----------------<option value='1'>1:suspicious<option value='2'>2:suspicious(checked)".
 				"</select><input class='add_whitelist' type='button' value='追加'>";
 	}
 
