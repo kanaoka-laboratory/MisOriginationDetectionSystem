@@ -32,7 +32,7 @@ function FilterSuspiciousBGPUpdate($rc = null){
 		// 全てのconflict_typeより小さい値（-1）で初期化
 		$conflict_type = -1;
 		// MOAS等の場合のため$asn2をforeach
-		// MOAS内でconflict_typeが違う場合，値が大きい方を採用（PRIVATE < SUSPICIOUS < WHITELIST）
+		// MOAS内でconflict_typeが違う場合，値が大きい方を採用（PRIVATE < SUSPICIOUS < WHITELIST < BLACKLIST）
 		$conflict_asn_cc = array();
 		$conflict_asn_whois = array();
 		foreach(explode('/', $conflict_asn) as $asn2){
@@ -71,6 +71,14 @@ function FilterSuspiciousBGPUpdate($rc = null){
 				$conflict_asn_whois[] = ($whois = GetWhoisAS($asn2))!==null? $whois["name"]: "unknown";
 			$conflict_asn_whois = $mysqli->real_escape_string(implode("/", $conflict_asn_whois));
 		}
+
+		// whois情報が関わってくるのでここに記述
+		// 未割り当てASNからの攻撃
+		if($asn_cc==='-X' && ($whois==='-' || $whois==='unknown'))
+			$conflict_type = CONFLICT_TYPE_BLACKLIST_UNASSIGNED_ASN;
+		// 未割り当てASN単体への攻撃（未割り当てASNからの攻撃に対する防御）
+		elseif($conflict_asn_cc==='-X' && ($conflict_asn_whois==='-' || $conflict_asn_whois==='unknown'))
+			$conflict_type = CONFLICT_TYPE_WHITELIST_DEFENSIVE_UPDATE;
 
 		//------------ Suspicious_idの取得Updateの登録 ------------//
 		$suspicious_id='null';
