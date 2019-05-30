@@ -49,7 +49,7 @@ function FilterSuspiciousBGPUpdate($rc = null){
 			// 国単位のホワイトリストでの検証
 			elseif(($type = $mysqli->VerifyConflictCountryWhiteList($asn_cc, $asn2_cc))!==null) $new_conflict_type = $type;
 			// AS単位のホワイトリストでの検証
-			elseif(($type = $mysqli->VerifyConflictAsnWhiteList($asn, $asn2_cc))!==null) $new_conflict_type = $type;
+			elseif(($type = $mysqli->VerifyConflictAsnWhiteList($asn, $asn2))!==null) $new_conflict_type = $type;
 			// 怪しい
 			else $new_conflict_type = CONFLICT_TYPE_SUSPICIOUS;
 

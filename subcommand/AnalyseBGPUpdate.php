@@ -31,7 +31,10 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 		
 		// タイムスタンプからBGPDUMPのファイル名を作成
 		$filename = MakeFilenames($rc, $ts);
-		if(!is_file($filename['update_bgpscanner'])) showLog("BGPScannerファイルがありません: {$filename['update_bgpscanner']}", true);
+		if(!is_file($filename['update_bgpscanner'])){
+			showLog("BGPScannerファイルがありません: {$filename['update_bgpscanner']}");
+			continue;
+		}
 		showLog("{$filename['update_bgpscanner']} の読み込み");
 		
 		//------------ 1行ずつ読み込み ------------//
