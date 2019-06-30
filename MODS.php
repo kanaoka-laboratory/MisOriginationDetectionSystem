@@ -27,8 +27,10 @@ $subcommand_usage = array(
 	'CronFilterSuspiciousBGPUpdate'			=> 'CronFilterSuspiciousBGPUpdate [<RC>]                      : Cron実行用（ハイジャックの可能性があるASペアをホワイトリストを用いて分類）',
 	'CronASCountry'							=> 'CronASCountry                                             : Cron実行用（ASと国の紐付け）',
 	'ImportSubmarineCableList'				=> 'ImportSubmarineCableList <CABLE LIST>                     : SubmarineCableMapより取得したCSVから海底ケーブルで接続された国を探し，DBに登録する',
-	'GetWhoisInfoFromAsn'					=> 'GetWhoisInfoFromAsn <ASN>                        : SuspiciousAsnSetに対してホワイトリストを再適用する',
+	'GetWhoisInfoFromAsn'					=> 'GetWhoisInfoFromAsn <ASN>                                 : AS番号のwhois情報を取得してDBに保存する',
 	'ReApplyWhitelist'						=> 'ReApplyWhitelist [<SUSPICIOUS_ID>]                        : SuspiciousAsnSetに対してホワイトリストを再適用する',
+	'CalcCountryDistance'					=> 'CalcCountryDistance                                       : 全ての2国間の隣接（陸地/海底ケーブル）ホップ数を求める',
+	'SummaryCountryDistance'				=> 'SummaryCountryDistance                                    : 各ConflictTypeごとにホップ数ごとの分布を求める',
 	'help'									=> 'help                                                      : このドキュメントを表示',
 );
 
@@ -137,6 +139,12 @@ try{
 		startLogging($subcommand);
 		$subcommand(isset($option[0])?$option[0]:null);
 		break;
+	//------------ CalcCountryDistance ------------//
+	case 'CalcCountryDistance':
+	case 'SummaryCountryDistance':
+		startLogging($subcommand);
+		$subcommand();
+		break;
 	}
 }
 //------------ コマンド毎の説明 ------------//
@@ -205,8 +213,9 @@ catch(Exception $e){
 	case 'FilterSuspiciousBGPUpdate':
 	case 'CronFilterSuspiciousBGPUpdate':
 	case 'CronASCountry':
+	case 'CalcCountryDistance':
+	case 'SummaryCountryDistance':
 		break;
-
 	}
 	exit(1);
 }
