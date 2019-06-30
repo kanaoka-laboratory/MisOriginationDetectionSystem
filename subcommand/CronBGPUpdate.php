@@ -46,11 +46,13 @@ function CronBGPUpdate($rc){
 			$mysqli->query("update CronProgress set processing=false where id={$cron["id"]}");
 		}// 変更検出
 		else{
-			// $ts〜$ts_maxまでの変更検出，ログは呼び出し先関数内にお任せ
-			$date_max = date('Y-m-d H:i', $ts_max);
-			AnalyseBGPUpdate($rc, date('Y-m-d H:i', $ts), $date_max);
+			// $ts〜$ts_maxまでの変更検出，1ts毎にDBを更新
+			for(; $ts<=$ts_max; $ts+=UPDATE_INTERVAL[$rc]*60){
+				AnalyseBGPUpdate($rc, date('Y-m-d H:i', $ts));
+				$mysqli->query("update CronProgress set value2='$date_max' where id={$cron["id"]}");
+			}
 			showLog('変更検出完了');
-			$mysqli->query("update CronProgress set value2='$date_max', processing=false where id={$cron["id"]}");
+			$mysqli->query("update CronProgress set processing=false where id={$cron["id"]}");
 		}
 	}// 失敗
 	elseif($cron["last_exec"]==false){

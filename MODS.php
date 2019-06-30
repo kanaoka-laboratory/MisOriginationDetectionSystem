@@ -4,7 +4,7 @@ chdir(__DIR__);
 // 設定ファイル読み込み
 require_once('config.php');
 // メンテナンス時は何もせず終了
-if(MODS_MAINTENANCE) exit("メンテナンスモードがONになっています".PHP_EOL);	
+if(trim(file_get_contents("maintenance.ini"))==="true") exit("メンテナンスモードがONになっています".PHP_EOL);	
 
 //==================== 引数のエラーチェック ====================//
 //------------ サブコマンドの取得 ------------//
