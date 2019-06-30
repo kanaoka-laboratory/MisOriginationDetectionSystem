@@ -67,6 +67,9 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 		$fp = fopen($filename['analyse_advertisement'], 'w');
 		fwrite($fp, 'adv_type,ip_prefix,conflict_ip_prefix,asn,conflict_asn,datetime'.PHP_EOL);
 
+		// トランザクション開始
+		$mysqli->begin_transaction();
+
 		// advertisementを以下の5種類に分類する
 		// 1. フルルートに重複するIPプレフィックスがなく，全く新しい経路の追加
 		// 2. フルルートに全く同じIPプレフィックスが存在し，OriginASが同じである（KeepAlive？）
@@ -138,6 +141,8 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 				}
 			}
 		}
+		// MySQLコミット・ファイルクローズ
+		$mysqli->commit();
 		fclose($fp);
 	}
 }
