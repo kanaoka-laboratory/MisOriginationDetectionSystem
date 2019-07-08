@@ -99,8 +99,10 @@ $page_html .= "</div>";
 				"<select>".
 					"<option value='10'>10:その他<option value='11'>11:同一組織<option value='12'>12:Akamai".
 					"<option value='13'>13:US DoD<option value='14'>14:近隣AS<option value='15'>15:DDoS軽減提供AS".
-					"<option value='16'>16:DDoS軽減利用AS<option value='17'>17:友好AS<option value='18'>18:(Empty)".
-					"<option value='19'>19:(Empty)<option value='20'>20:大学Project<option value='0'>----------------".
+					"<option value='16'>16:DDoS軽減利用AS<option value='17'>17:友好AS<option value='18'>18:ハイジャックへの防御".
+					"<option value='19'>19:<option value='20'>20:大学Project<option value='21'>21:アドレスのリース".
+					"<option value='22'>22:(Empty)<option value='23'>23:(Empty)<option value='24'>24:(Empty)".
+					"<option value='25'>25:(Empty)<option value='0'>----------------".
 					"<option value='50'>50:malicious<option value='51'>51:IANA予約<option value='52'>52:4bitAS番号".
 					"<option value='53'>53:(Empty)<option value='54'>54:(Empty)<option value='55'>55:(Empty)".
 					"<option value='0'>----------------<option value='1'>1:suspicious<option value='2'>2:suspicious(checked)".
