@@ -48,8 +48,9 @@ function CronBGPUpdate($rc){
 		else{
 			// $ts〜$ts_maxまでの変更検出，1ts毎にDBを更新
 			for(; $ts<=$ts_max; $ts+=UPDATE_INTERVAL[$rc]*60){
-				AnalyseBGPUpdate($rc, date('Y-m-d H:i', $ts));
-				$mysqli->query("update CronProgress set value2='$date_max' where id={$cron["id"]}");
+				$date_process = date('Y-m-d H:i', $ts);
+				AnalyseBGPUpdate($rc, $date_process);
+				$mysqli->query("update CronProgress set value2='$date_process' where id={$cron["id"]}");
 			}
 			showLog('変更検出完了');
 			$mysqli->query("update CronProgress set processing=false where id={$cron["id"]}");
