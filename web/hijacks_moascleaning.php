@@ -48,10 +48,20 @@ $page_html .= "</div>";
 <?=$page_html?>
 <table id="hijack_list">
 	<?php
+	//==================== 国の距離一覧を取得 ====================//
+	$country_distance = array();
+	$result = $mysqli->query("select * from CountryDistance");
+	while($row = $result->fetch_assoc()){
+		$country_distance[$row["cc1"]][$row["cc2"]] = (int)$row["distance"];
+	}
+	$result->close();
+
 	//------------ th行作成 ------------//
 	$th = "<tr class='whitelist'>".
 		"<th style='width:40px;'>#".
 		"<th style='width:40px;'>conf<br>_type".
+		"<th style='width:64px;'>country<br>_hop".
+		"<th style='width:40px;'>typo".
 		"<th style='width:160px;'>ip_prefix".
 		"<th style='width:160px;'>conf_ip_prefix".
 		"<th style='width:80px;'>asn".
@@ -77,6 +87,15 @@ $page_html .= "</div>";
 	//------------ 1行ずつ処理 ------------//
 	for($i=0;$row = $result->fetch_assoc();$i++){
 		if($i%50===0) echo $th;
+		// 事前計算
+		$country_hop = "unknwon";
+		if($row["asn_cc"]==="EU" || $row["conflict_asn_cc"]==="EU")
+			$country_hop = "EU";
+		elseif(isset($country_distance[$row["asn_cc"]][$row["conflict_asn_cc"]]))
+			$country_hop = $country_distance[$row["asn_cc"]][$row["conflict_asn_cc"]];
+		if($country_hop !== 2) $country_hop = "<span class='filter3_warning'>$country_hop</span>";
+			
+
 		// 行を分割
 		if($row["conflict_type"]>=50) echo "<tr class='blacklist'>";
 		elseif($row["conflict_type"]>=10) echo "<tr class='whitelist'>";
@@ -84,6 +103,8 @@ $page_html .= "</div>";
 		else echo "<tr class='suspicious'>";
 		echo "<td>", $row["suspicious_id"],
 			"<td name='conflict_type'>", $row["conflict_type"],
+			"<td>", $country_hop,
+			"<td>", levenshtein($row["asn"], $row["conflict_asn"])===1? "<span class='filter3_warning'>typo</span>": "",
 			"<td>", $row["ip_prefix"],
 			"<td>", $row["conflict_ip_prefix"],
 			"<td>", $row["asn"],
