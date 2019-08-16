@@ -25,7 +25,10 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 		// 事件対象となるフルルートのデータが変わる場合（$tsとフルルートのタイムスタンプが一致する）
 		if(in_array(date('Hi',$ts), ['0000','0800','1600'], true)){
 			$fullroute_filename = MakeFilenames($rc, $ts)['fullroute_phpdata'];
-			if(!is_file($fullroute_filename)) showLog("実験対象となるフルルートのデータ（$fullroute_filename）がありません", true);
+			if(!is_file($fullroute_filename)){
+				showLog("実験対象となるフルルートのデータ（$fullroute_filename）がありません", true);
+				continue;
+			}
 			$network_list = unserialize(file_get_contents($fullroute_filename));
 		}
 		

@@ -44,8 +44,10 @@ function FilterSuspiciousBGPUpdate($rc = null){
 			//------------ conflict_typeの決定 ------------//
 			// 少なくとも片方がプライベートAS番号
 			if($asn_cc==='-P' || $asn2_cc==='-P') $new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
-			// 同じ国（ただしどちらも国籍不明である場合は除く）
-			elseif($asn_cc===$asn2_cc && $asn_cc!=='-X') $new_conflict_type = CONFLICT_TYPE_SAME_COUNTRY;
+			// 国籍不明：未割り当てAS
+			elseif($asn_cc==='-X') $new_conflict_type = CONFLICT_TYPE_BLACKLIST_UNASSIGNED_ASN;
+			// 同じ国
+			elseif($asn_cc===$asn2_cc) $new_conflict_type = CONFLICT_TYPE_SAME_COUNTRY;
 			// 国単位のホワイトリストでの検証
 			elseif(($type = $mysqli->VerifyConflictCountryWhiteList($asn_cc, $asn2_cc))!==null) $new_conflict_type = $type;
 			// AS単位のホワイトリストでの検証

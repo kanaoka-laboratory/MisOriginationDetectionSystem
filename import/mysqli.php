@@ -75,6 +75,8 @@ class mymysqli extends mysqli{
 		// DDoS軽減の逆を確認
 		$result = $this->query("select * from SuspiciousAsnSet where asn='$conflict_asn' and conflict_asn='$asn' and conflict_type=".CONFLICT_TYPE_WHITELIST_DDOS_MITIGATION);
 		if($result->num_rows>0) return CONFLICT_TYPE_WHITELIST_DDOS_MITIGATION_CLIENT;
+		// typoを確認
+		if(isTypo($asn, $conflict_asn)) return CONFLICT_TYPE_BLACKLIST_TYPO;
 		return null;
 	}
 }
