@@ -108,4 +108,26 @@ function ReApplyWhitelist($suspicious_id = null){
 	}
 }
 
+//==================== 2つのAS番号がtypoであるかどうかをチェックする ====================//
+function isTypo($asn1, $asn2){
+	// 1文字違いでないならtypoではない
+	if(levenshtein($asn1, $asn2)!==1) return false;
+	// 1文字打ち損じた場合（文字数に差がある）はtypo
+	$strlen = strlen($asn1);
+	if($strlen !== strlen($asn2)) return true;
+	// うち間違えた文字がキーボード（テンキー含む）で隣接する場合はtypo
+	$typo1 = ''; 
+	$typo2 = '';
+	for($i=0; $i<$strlen; $i++){
+		if( ($typo1=substr($asn1, $i, 1)) !== ($typo2=substr($asn2, $i, 1)) ) break;
+	}
+	$remainder = abs($typo1-$typo2);
+	// 差が1,3,9：キーが隣
+	if($remainder===1 || $remainder===3 || $remainder===9) return true;
+	// 0と2も隣
+	if(($typo1==='0' && $typo2==='2') || ($typo1==='2' && $typo2==='0')) return true;
+	// それ以外はtypoではない
+	return false;
+}
+
 ?>
