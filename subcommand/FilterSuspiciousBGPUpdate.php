@@ -43,17 +43,26 @@ function FilterSuspiciousBGPUpdate($rc = null){
 
 			//------------ conflict_typeの決定 ------------//
 			// 少なくとも片方がプライベートAS番号
-			if($asn_cc==='-P' || $asn2_cc==='-P') $new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN;
-			// 国籍不明：未割り当てAS
-			elseif($asn_cc==='-X') $new_conflict_type = CONFLICT_TYPE_BLACKLIST_UNASSIGNED_ASN;
+			if($asn_cc==='-P' || $asn2_cc==='-P'){ $new_conflict_type = CONFLICT_TYPE_PRIVATE_ASN; }
+			// 国籍不明：ブラックリスト
+			elseif($asn_cc==='-X'){
+				// typoのみ先に除外
+				if($mysqli->VerifyConflictAsnWhiteList($asn, $asn2)===CONFLICT_TYPE_BLACKLIST_TYPO) $new_conflict_type = CONFLICT_TYPE_BLACKLIST_TYPO;
+				// IANA Reserved
+				elseif((48128<=$asn && $asn<=64511) || $asn==65535) $new_conflict_type = CONFLICT_TYPE_BLACKLIST_IANA_RESERVE;
+				// 4bit ASN
+				elseif($asn==23456) $new_conflict_type = CONFLICT_TYPE_BLACKLIST_4BIT_ASN;
+				// Unassigned
+				else $new_conflict_type = CONFLICT_TYPE_BLACKLIST_UNASSIGNED_ASN;
+			}
 			// 同じ国
-			elseif($asn_cc===$asn2_cc) $new_conflict_type = CONFLICT_TYPE_SAME_COUNTRY;
+			elseif($asn_cc===$asn2_cc){ $new_conflict_type = CONFLICT_TYPE_SAME_COUNTRY; }
 			// 国単位のホワイトリストでの検証
-			elseif(($type = $mysqli->VerifyConflictCountryWhiteList($asn_cc, $asn2_cc))!==null) $new_conflict_type = $type;
+			elseif(($type = $mysqli->VerifyConflictCountryWhiteList($asn_cc, $asn2_cc))!==null){ $new_conflict_type = $type; }
 			// AS単位のホワイトリストでの検証
-			elseif(($type = $mysqli->VerifyConflictAsnWhiteList($asn, $asn2))!==null) $new_conflict_type = $type;
+			elseif(($type = $mysqli->VerifyConflictAsnWhiteList($asn, $asn2))!==null){ $new_conflict_type = $type; }
 			// 怪しい
-			else $new_conflict_type = CONFLICT_TYPE_SUSPICIOUS;
+			else{ $new_conflict_type = CONFLICT_TYPE_SUSPICIOUS; }
 
 			// $new_conflict_typeがそれまでの$conflict_typeよりも大きかった場合値を更新
 			if($new_conflict_type > $conflict_type) $conflict_type = $new_conflict_type;
