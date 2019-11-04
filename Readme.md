@@ -1,8 +1,8 @@
 # MODS
 ## Requirements
 - MySQL（MariaDB）
-    - db_setupの中のsqlを発行することでデータベースとテーブルを作成できる
-    - 接続用のユーザ・パスワードはconfig.php内にて記述
+    - you can create databases and tables by executing sql which is in `db_setup`
+    - credentials are written in `config.php`
 - [bgpscanner](https://gitlab.com/Isolario/bgpscanner)
 
 ## Usage
@@ -10,94 +10,91 @@
 
 ### subcommands & options
 - GetBGPFullRoute \<RC\> \<START\> [\<END\>]  
-RIPE RIRから経路情報（FULL）を取得し，BGPDUMP形式に展開する
+Obtain route information (FULL) from RIPE RIR and expand to BGPDUMP format
 - GetBGPUpdate \<RC\> \<START\> [\<END\>]  
-RIPE RIRから経路情報（UPDATE）を取得し，BGPDUMP形式に展開する
+Obtain route information (UPDATE) from RIPE RIR and expand to BGPDUMP format
 - ExtractPHPDataFromBGPScanner \<RC\> \<START\> [\<END\>]  
-BGPDUMPファイルからネットワークリストを抽出しPHPの配列としてファイルに保存する
+Extract network_list from BGPDUMP file and save it as PHP array in file
 - TrackOriginExactChangedPrefix \<RC\> \<START\> \<END\>  
-OriginASの変更をExactMatchで検出し，変更のあったIPプレフィックスを指定期間追跡する
+Detect changes in OriginAS with ExactMatch and track the changed IP prefix for a specified period
 - TrackOriginExactChangedPrefix2 \<RC\> \<DATE\>  
-OriginASの変更をExactMatchで検出し，1週間前からのOriginASの変遷を追跡する
+Detect changes in OriginAS with ExactMatch, and track changes in OriginAS from one week ago
 - TrackOriginIncludeChangedPrefix \<RC\> \<START\> \<END\>  
-OriginASの変更をIncludeMatchで検出し，変更のあったIPプレフィックスを指定期間追跡する
+Detect OriginAS changes with IncludeMatch and track the changed IP prefix for a specified period
 - TrackOriginIncludeChangedPrefix2 \<RC\> \<DATE\>  
-OriginASの変更をIncludeMatchで検出し，1週間前からのOriginASの変遷を追跡する
+Detect changes in OriginAS with IncludeMatch, and track changes in OriginAS from one week ago
 - AnalyseKindAndChangeNum \<FILENAME\>  
-OriginASに変更のあったIPプレフィックスの追跡結果を，データの種類数と変更回数で統計する
+Statistic results of IP prefixes that have changed in OriginAS by the number of data types and the number of changes
 - TrackAndAnalyseKindAndChangeNum \<RC\> \<START|DATE\> [\<END\>]  
-TrackOriginChangedPrefixを両方実行後，AnalyseKindAndChangeNumを実行する
+After executing both TrackOriginChangedPrefix, execute AnalyseKindAndChangeNum
 - AnalyseBGPUpdate \<RC\> \<START\> [\<END\>]  
-5分おきのアップデートのAdvertisementを，直前のフルルートのダンプと比較し変更の検出をする
+Detect changes by comparing advertisements in updates every 5 minutes with previous full route dumps
 - AnalyseBGPUpdateSummary \<RC\> \<START\> [\<END\>]  
-AnalyseAdvertisementの結果から，各時刻毎の各typeの数を集計する（作図用）
+From the result of AnalyzeAdvertisement, count the number of each type at each time (for plotting)
 - FilterSuspiciousBGPUpdate [\<RC\>]  
-AnalyseAdvertisementの結果のハイジャックの可能性があるものをホワイトリストを用いて分類する
+Classify AnalyzeAdvertisement results that may be hijacked using a whitelist
 - CronBGPFullRoute \<RC\>  
-Cron実行用（8時間おきのフルルートを取得して変更検出）
+For Cron execution (changes are detected by obtaining a full route every 8 hours)
 - CronBGPUpdate \<RC\>  
-Cron実行用（5分おきのフルルートを取得し，直前のフルルートとの衝突検出）
+For Cron execution (obtains update every 5 minutes and detects collision with previous full route)
 - CronFilterSuspiciousBGPUpdate [\<RC\>]  
-Cron実行用（ハイジャックの可能性があるASペアをホワイトリストを用いて分類）
+For Cron execution (classify AS pairs that may be hijacked using whitelist)
 - CronASCountry  
-Cron実行用（ASと国の紐付け）
+For Cron execution (Association of AS and country)
 - ImportSubmarineCableList \<CABLE LIST\>  
-SubmarineCableMapより取得したCSVから海底ケーブルで接続された国を探し，DBに登録する
+Search for countries connected by submarine cables from CSV obtained from SubmarineCableMap and register them in DB
 - GetWhoisInfoFromAsn \<ASN\>  
-AS番号のwhois情報を取得してDBに保存する
+Get whois information of AS number and save it in DB
 - ReApplyWhitelist [\<SUSPICIOUS_ID\>]  
-SuspiciousAsnSetに対してホワイトリストを再適用する
+Reapply whitelist to SuspiciousAsnSet
 - CalcCountryDistance  
-全ての2国間の隣接（陸地/海底ケーブル）ホップ数を求める
+Find the number of adjacent (land / submarine cable) hops between all two areas
 - SummaryCountryDistance  
-各ConflictTypeごとにホップ数ごとの分布を求める
+Calculate distribution for each hop number for each ConflictType
 - help  
-このドキュメントを表示
+View this document
 
 ## Directory Structures
-|- MODS.php：基本プログラムファイル  
+|- MODS.php：main file  
 |  
-|- config.php：MODSの設定ファイル  
+|- config.php：config for MODS  
 |  
-|- import/：必ず使うであろう自作の関数群  
+|- import/：functions called by almost all subcommands  
 |  
-|- subcommand/：サブコマンド関連の関数群  
+|- subcommand/：functions for subcommands  
 |  
-|- data/：データディレクトリ  
-| |- RIPE/：RIPEから収集したデータ  
-| |- TrackOriginChangedPrefix：OriginASに変更があったIPプレフィックスの追跡実験  
+|- data/：data directory  
 |  
-|- script/：単独で実行可能なスクリプト  
+|- script/：scripts independent of MODS  
 |  
-|- web/：Webページ用のスクリプト等  
+|- web/：scripts for web  
 |  
-|- log/：MODSの実行ログ  
-| |- （サブコマンド毎のログディレクトリ）  
+|- log/：log directory    
 |  
-|- Readme.txt：このファイル
+|- Readme.txt：this file
 
-### subcommandの追加
-- subcommandディレクトリに，subcommandと同名ファイルを作成
-- subcommandと同名functionに処理を記述
-- logディレクトリにsubcommandと同名のディレクトリを作成
-- MODS.phpを編集（MODSオプション一覧への簡易説明，オプション毎の詳細説明，引数チェック）
+### append subcommand
+- Create a file with the same name as subcommand in the subcommand directory
+- Describe processing in function with the same name as subcommand
+- Create a directory with the same name as subcommand in the log directory
+- Edit MODS.php (simple explanation to MODS option list, detailed explanation for each option, argument check)
 
 ## Notes
-### $network_listの内部構造
+### $network_list internal structure
     {
         "v4": {
             "192.168.1.0/24": {
-                'network': 100000000,	// 最小IP（int）
-                'broadcast': 200000000,	// 最大IP（int）
-                100: true,			// AS番号（配列キーとして保存）
-                200: true,			// AS番号（配列キーとして保存）
-                300: true,			// AS番号（配列キーとして保存）
+                'network': 100000000,	// min IP（int）
+                'broadcast': 200000000,	// max IP（int）
+                100: true,			// ASN（save as index of array）
+                200: true,			// ASN（save as index of array）
+                300: true,			// ASN（save as index of array）
             },
             "172.16.32.0/22": [
-                'network': 100000000,	// 最小IP（int）
-                'broadcast': 200000000,	// 最大IP（int）
-                2886737920: true,		// AS番号（配列キーとして保存）
-                2886738175: true,		// AS番号（配列キーとして保存）
+                'network': 100000000,	// min IP（int）
+                'broadcast': 200000000,	// max IP（int）
+                2886737920: true,		// ASN（save as index of array）
+                2886738175: true,		// ASN（save as index of array）
             ],
         },
     }
