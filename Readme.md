@@ -6,7 +6,11 @@
 - [bgpscanner](https://gitlab.com/Isolario/bgpscanner)
 
 ## Installation
-You need more 2 steps after `git clone`
+You need more 3 steps after `git clone`
+
+### copy config file
+copy `config_sample.php` to `config.php`
+fill credentials (DB username/password, GoogleCustomAPI APIKey/SearchEngineID)
 
 ### DB Setup
 Install MySQL (or MariaDB), then execute `db_Setup/*.sql`.

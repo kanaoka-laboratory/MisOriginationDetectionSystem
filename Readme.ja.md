@@ -8,6 +8,10 @@
 ## Installation
 git cloneとは別に以下の手順が必要
 
+### 設定ファイルのコピー
+`config_sample.php` を `config.php` にコピー
+認証情報を記述 (DB ユーザ名/パスワード, GoogleCustomAPI APIKey/検索エンジンID)
+
 ### DBのセットアップ  
 MySQL（MariaDB）を用意し `db_Setup/*.sql` を順番に読み込む  
 注）00_table_structure.sqlを最初に読み込む

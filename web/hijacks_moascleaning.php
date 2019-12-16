@@ -101,7 +101,7 @@ $page_html .= "</div>";
 		elseif($row["conflict_type"]>=10) echo "<tr class='whitelist'>";
 		elseif($row["conflict_type"]==2) echo "<tr class='suspicious_checked'>";
 		else echo "<tr class='suspicious'>";
-		echo "<td>", $row["suspicious_id"],
+		echo "<td><a href='search_as_info.php?asn={$row['asn']},{$row['conflict_asn']}' target='_blank'>", $row["suspicious_id"], "</a>",
 			"<td name='conflict_type'>", $row["conflict_type"],
 			"<td>", $country_hop,
 			"<td>", levenshtein($row["asn"], $row["conflict_asn"])===1? "<span class='filter3_warning'>typo</span>": "",
