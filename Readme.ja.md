@@ -5,6 +5,40 @@
     - 接続用のユーザ・パスワードはconfig.php内にて記述
 - [bgpscanner](https://gitlab.com/Isolario/bgpscanner)
 
+## Installation
+git cloneとは別に以下の手順が必要
+
+### 設定ファイルのコピー
+`config_sample.php` を `config.php` にコピー
+認証情報を記述 (DB ユーザ名/パスワード, GoogleCustomAPI APIKey/検索エンジンID)
+
+### DBのセットアップ  
+MySQL（MariaDB）を用意し `db_Setup/*.sql` を順番に読み込む  
+注）00_table_structure.sqlを最初に読み込む
+
+### cronの登録  
+以下のcronを登録する
+
+    # BGPFullRoute：5分おきに実行（rc毎に記述）
+    */5 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPFullRoute ripe_rc00
+    */5 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPFullRoute ripe_rc01
+    */5 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPFullRoute routeviews_oregon
+
+    # BGPUpdate：2分おきに実行（rc毎に記述）
+    */2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPUpdate ripe_rc00
+    */2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPUpdate ripe_rc01
+    */2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPUpdate routeviews_oregon
+
+
+    # FilterSuspiciousBGPUpdate：2分おきに実行（BGPUpdateとかぶらないようにずらす）
+    1-59/2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronFilterSuspiciousBGPUpdate 
+
+    # ASCountry：1時間ごとに実行（0分だと他のcronと重なるので適当に時間ずらす）
+    3 */1 * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronASCountry
+
+### Google Custom Search APIの設定
+API KeyとSearch Engine IDを取得して `config.php` に記載する
+
 ## Usage
     Usage: php MODS.php <subcommand> [<options>]
 

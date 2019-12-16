@@ -5,6 +5,40 @@
     - credentials are written in `config.php`
 - [bgpscanner](https://gitlab.com/Isolario/bgpscanner)
 
+## Installation
+You need more 3 steps after `git clone`
+
+### copy config file
+copy `config_sample.php` to `config.php`
+fill credentials (DB username/password, GoogleCustomAPI APIKey/SearchEngineID)
+
+### DB Setup
+Install MySQL (or MariaDB), then execute `db_Setup/*.sql`.
+note) Execute `00_table_structure.sql` first.
+
+### cron Setup  
+set up these cron: 
+
+    # BGPFullRoute: execute in every 5 minutes（every RC）
+    */5 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPFullRoute ripe_rc00
+    */5 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPFullRoute ripe_rc01
+    */5 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPFullRoute routeviews_oregon
+
+    # BGPUpdate: execute in every 2 minutes（every RC）
+    */2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPUpdate ripe_rc00
+    */2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPUpdate ripe_rc01
+    */2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronBGPUpdate routeviews_oregon
+
+
+    # FilterSuspiciousBGPUpdate: execute in every 2 minutes
+    1-59/2 * * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronFilterSuspiciousBGPUpdate 
+
+    # ASCountry: execute in every an hour
+    3 */1 * * * php /path/to/MisOriginationDetectionSystem/MODS.php CronASCountry
+
+### Google Custom Search APIの設定
+Get API Key and Search Engine ID, and write those into `config.php`.
+
 ## Usage
     Usage: php MODS.php <subcommand> [<options>]
 
