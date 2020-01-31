@@ -85,7 +85,7 @@ function FilterSuspiciousBGPUpdate($rc = null){
 
 		// whois情報が関わってくるのでここに記述
 		// 未割り当てASNからの攻撃
-		if($asn_cc==='-X' && ($whois==='-' || $whois==='unknown'))
+		if($asn_cc==='-X' && ($asn_whois==='-' || $asn_whois==='unknown'))
 			$conflict_type = CONFLICT_TYPE_BLACKLIST_UNASSIGNED_ASN;
 		// 未割り当てASN単体への攻撃（未割り当てASNからの攻撃に対する防御）
 		elseif($conflict_asn_cc==='-X' && ($conflict_asn_whois==='-' || $conflict_asn_whois==='unknown'))
