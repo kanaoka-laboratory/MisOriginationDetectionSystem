@@ -17,7 +17,6 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 	if($tmp_Hi>='1600')		$fullroute_filename = MakeFilenames($rc, strtotime(date('Y-m-d 16:00', $ts)))['fullroute_phpdata'];
 	elseif($tmp_Hi>='0800')	$fullroute_filename = MakeFilenames($rc, strtotime(date('Y-m-d 08:00', $ts)))['fullroute_phpdata'];
 	else					$fullroute_filename = MakeFilenames($rc, strtotime(date('Y-m-d 00:00', $ts)))['fullroute_phpdata'];
-	if(!is_file($fullroute_filename)) showLog("実験対象となるフルルートのデータ（{$fullroute_filename}）がありません", true);
 	$network_list = unserialize(file_get_contents($fullroute_filename));
 	
 	// 5分ごとに時間をずらしながら実行
@@ -26,10 +25,13 @@ function AnalyseBGPUpdate($rc, $start, $end = null){
 		if(in_array(date('Hi',$ts), ['0000','0800','1600'], true)){
 			$fullroute_filename = MakeFilenames($rc, $ts)['fullroute_phpdata'];
 			if(!is_file($fullroute_filename)){
-				showLog("実験対象となるフルルートのデータ（{$fullroute_filename}）がありません", true);
+				showLog("実験対象となるフルルートのデータ（{$fullroute_filename}）がありません");
 				continue;
 			}
 			$network_list = unserialize(file_get_contents($fullroute_filename));
+		}elseif(!is_file($fullroute_filename)){
+			showLog("実験対象となるフルルートのデータ（{$fullroute_filename}）がありません");
+			continue;
 		}
 		
 		// タイムスタンプからBGPDUMPのファイル名を作成
